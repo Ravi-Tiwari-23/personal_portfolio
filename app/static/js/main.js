@@ -48,19 +48,29 @@
       heroTimeline
         .from('.hero-intro', { y: 22, opacity: 0, duration: 0.7 })
         .from('.hero-name .hero-line', { yPercent: 112, duration: 1.05, stagger: 0.12 }, '-=0.35')
-        .from('.hero-copy > *', { y: 24, opacity: 0, duration: 0.65, stagger: 0.1 }, '-=0.52')
+        .from('.hero-universe-shell', { scale: 0.68, opacity: 0, duration: 0.95 }, '-=0.72')
+        .from('.hero-orbit-guide', { scale: 0.65, opacity: 0, duration: 0.65, stagger: 0.08 }, '-=0.62')
+        .from('.hero-skill', { opacity: 0, duration: 0.52, stagger: 0.055 }, '-=0.48')
+        .from('.hero-copy > *', { y: 24, opacity: 0, duration: 0.65, stagger: 0.1 }, '-=0.42')
         .from('.hero-cta', { scale: 0.72, opacity: 0, duration: 0.75 }, '-=0.5')
         .from('.scroll-note', { x: -18, opacity: 0, duration: 0.55 }, '-=0.4');
 
       const heroScroll = gsap.timeline({
         defaults: { ease: 'none' },
-        scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 1 },
+        scrollTrigger: {
+          trigger: '.hero',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1,
+          onUpdate: (self) => window.dispatchEvent(new CustomEvent('hero-universe-progress', { detail: { progress: self.progress } })),
+        },
       });
       heroScroll
         .to('.hero-name', { yPercent: -17, scale: 0.94 }, 0)
         .to('.hero-copy', { y: -58, opacity: 0.34 }, 0)
         .to('.hero-top', { y: -30, opacity: 0.35 }, 0)
         .to('.hero-cta', { y: -90, scale: 0.86 }, 0)
+        .to('.hero-universe', { y: -72, scale: 0.92, opacity: 0.06 }, 0.12)
         .fromTo('.intro-band', { y: 70 }, { y: 0 }, 0.52);
 
       gsap.from('.about-declaration', {
@@ -296,6 +306,17 @@
           dot.classList.remove('cursor--interactive');
           ring.classList.remove('cursor--interactive');
           label.textContent = '';
+        });
+      });
+
+      document.querySelectorAll('[data-hero-skill]').forEach((item) => {
+        item.addEventListener('pointerenter', () => {
+          dot.classList.add('cursor--skill');
+          ring.classList.add('cursor--skill');
+        });
+        item.addEventListener('pointerleave', () => {
+          dot.classList.remove('cursor--skill');
+          ring.classList.remove('cursor--skill');
         });
       });
 

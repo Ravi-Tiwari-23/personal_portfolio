@@ -18,6 +18,7 @@
   <script src="{{ url_for('static', filename='js/vendor/gsap.min.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/vendor/ScrollTrigger.min.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+  {% block extra_scripts %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#main-content">Skip to content</a>

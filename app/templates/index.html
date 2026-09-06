@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ site.site_title }}{% endblock %}
 {% block body_class %}home-page{% endblock %}
+{% block extra_scripts %}<script type="module" src="{{ url_for('static', filename='js/hero-3d.js') }}"></script>{% endblock %}
 {% block content %}
 <section class="hero" id="home" data-cursor-theme="dark">
   <div class="hero-inner container">
@@ -12,8 +13,31 @@
     <span class="line-mask"><span class="hero-line">RAVI KUMAR</span></span>
     <span class="line-mask hero-line-indent"><span class="hero-line outline">TIWARI<span class="hero-dot">.</span></span></span>
   </h1>
+  <div class="hero-universe" data-hero-universe aria-label="Interactive orbit of Ravi's technical skills">
+    <div class="hero-universe-shell" aria-hidden="true">
+      <canvas class="hero-orb-canvas"></canvas>
+      <div class="hero-orb-fallback"><i></i><i></i><i></i></div>
+      <span class="hero-orbit-guide orbit-guide-one"></span>
+      <span class="hero-orbit-guide orbit-guide-two"></span>
+      <span class="hero-orbit-guide orbit-guide-three"></span>
+    </div>
+    <ul class="hero-skill-cloud" aria-label="Technical skills represented in the orbit">
+      <li class="hero-skill" data-hero-skill data-skill-detail="Intelligent systems" tabindex="0"><i></i><span>AI</span><small>Intelligent systems</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Automation · Backend" tabindex="0"><i></i><span>Python</span><small>Automation · Backend</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Analysis · Insight" tabindex="0"><i></i><span>Data Analysis</span><small>Analysis · Insight</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Queries · Structure" tabindex="0"><i></i><span>SQL</span><small>Queries · Structure</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Web applications" tabindex="0"><i></i><span>Django</span><small>Web applications</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Interface logic" tabindex="0"><i></i><span>JavaScript</span><small>Interface logic</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Accessible interfaces" tabindex="0"><i></i><span>HTML / CSS</span><small>Accessible interfaces</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Relational data" tabindex="0"><i></i><span>MySQL</span><small>Relational data</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Analysis · Reporting" tabindex="0"><i></i><span>Excel</span><small>Analysis · Reporting</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Statistical analysis" tabindex="0"><i></i><span>SPSS</span><small>Statistical analysis</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Version control" tabindex="0"><i></i><span>Git / GitHub</span><small>Version control</small></li>
+      <li class="hero-skill" data-hero-skill data-skill-detail="Responsive systems" tabindex="0"><i></i><span>Web Development</span><small>Responsive systems</small></li>
+    </ul>
+  </div>
   <div class="hero-bottom">
-    <div class="hero-copy"><p class="hero-title">{{ site.professional_title }}</p><p>{{ site.hero_statement }}</p></div>
+    <div class="hero-copy"><p class="hero-title">AI • DATA • WEB</p><p>{{ site.hero_statement }}</p></div>
     <a class="circle-link hero-cta" href="#about" data-magnetic data-cursor="EXPLORE ↓"><span>Explore<br>my work</span><i>↓</i></a>
   </div>
   <div class="scroll-note" aria-hidden="true"><span></span>Scroll to discover</div>
