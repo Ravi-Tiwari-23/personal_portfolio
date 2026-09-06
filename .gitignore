@@ -1,17 +1,40 @@
-.env
+# Virtual environment
 .venv/
+venv/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Python
 __pycache__/
 *.py[cod]
-*.sqlite3
-instance/*
-!instance/.gitkeep
+
+# Pytest / testing
 .pytest_cache/
+pytest-tmp-*/
+.pytest_tmp/
 .coverage
 htmlcov/
-dist/
-build/
-*.egg-info/
-.DS_Store
-.idea/
-.vscode/
 
+# Local database / Flask instance data
+instance/*.db
+instance/*.sqlite
+instance/*.sqlite3
+
+# Keep instance directory itself
+!instance/.gitkeep
+
+# Logs
+*.log
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
