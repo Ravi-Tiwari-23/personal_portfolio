@@ -1,0 +1,7 @@
+{% extends "admin/base.html" %}
+{% block title %}Message from {{ message.name }}{% endblock %}
+{% block content %}
+<header class="admin-page-head"><div><a class="admin-back" href="{{ url_for('admin.messages') }}">← Back to messages</a><h1>{{ message.subject }}</h1><p>Received {{ message.created_at.strftime('%d %B %Y at %H:%M') }}</p></div><div class="head-actions"><a class="admin-button primary" href="mailto:{{ message.email }}?subject=Re:%20{{ message.subject|urlencode }}">Reply by email ↗</a></div></header>
+<section class="panel message-detail"><div class="sender"><span>{{ message.name[0]|upper }}</span><div><h2>{{ message.name }}</h2><a href="mailto:{{ message.email }}">{{ message.email }}</a></div></div><div class="message-body">{{ message.message|e|replace('\n', '<br>')|safe }}</div><div class="message-actions"><form method="post" action="{{ url_for('admin.message_toggle', message_id=message.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="admin-button">Mark as {{ 'unread' if message.is_read else 'read' }}</button></form><form method="post" action="{{ url_for('admin.message_delete', message_id=message.id) }}" data-confirm="Delete this message?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="admin-button danger">Delete</button></form></div></section>
+{% endblock %}
+

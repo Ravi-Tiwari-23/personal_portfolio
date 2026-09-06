@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+<header class="admin-page-head"><div><p class="admin-kicker">PORTFOLIO CONTROL</p><h1>Welcome back, {{ current_user.username }}.</h1><p>Here’s what’s happening across your portfolio.</p></div><a class="admin-button primary" href="{{ url_for('admin.project_new') }}">+ Add project</a></header>
+<section class="stat-grid">
+  <article><span>ALL PROJECTS</span><strong>{{ stats.projects }}</strong><a href="{{ url_for('admin.projects') }}">Manage →</a></article>
+  <article><span>PUBLISHED</span><strong>{{ stats.published }}</strong><p>Visible on the site</p></article>
+  <article><span>DRAFTS</span><strong>{{ stats.drafts }}</strong><p>Waiting for review</p></article>
+  <article class="accent-card"><span>UNREAD MESSAGES</span><strong>{{ stats.unread }}</strong><a href="{{ url_for('admin.messages') }}">Open inbox →</a></article>
+</section>
+<section class="admin-two-col">
+  <div class="panel"><div class="panel-head"><h2>Recent messages</h2><a href="{{ url_for('admin.messages') }}">View all</a></div>{% if recent_messages %}<div class="message-list">{% for message in recent_messages %}<a href="{{ url_for('admin.message_detail', message_id=message.id) }}" class="{% if not message.is_read %}unread{% endif %}"><span>{{ message.name[0]|upper }}</span><div><strong>{{ message.name }}</strong><p>{{ message.subject }}</p></div><time>{{ message.created_at.strftime('%d %b') }}</time></a>{% endfor %}</div>{% else %}<div class="panel-empty"><span>□</span><h3>No messages yet</h3><p>New enquiries will show up here.</p></div>{% endif %}</div>
+  <div class="panel"><div class="panel-head"><h2>Quick actions</h2></div><div class="quick-actions"><a href="{{ url_for('admin.project_new') }}"><span>＋</span><div><strong>Create a project</strong><p>Add a new case study</p></div><i>→</i></a><a href="{{ url_for('admin.resume') }}"><span>↓</span><div><strong>Update résumé</strong><p>Replace the public PDF</p></div><i>→</i></a><a href="{{ url_for('admin.settings') }}"><span>✦</span><div><strong>Edit profile</strong><p>Update copy and links</p></div><i>→</i></a></div></div>
+</section>
+{% endblock %}
+

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}"><title>{% block title %}Admin{% endblock %} — {{ site.name }}</title>
+  <script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#admin-content">Skip to content</a>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a class="admin-brand" href="{{ url_for('admin.dashboard') }}">RAVI<span>®</span><small>CONTROL</small></a>
+      <nav aria-label="Admin navigation">
+        <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}"><span>⌂</span> Overview</a>
+        <a href="{{ url_for('admin.projects') }}" class="{% if request.endpoint and request.endpoint.startswith('admin.project') %}active{% endif %}"><span>◇</span> Projects</a>
+        <a href="{{ url_for('admin.messages') }}" class="{% if request.endpoint and request.endpoint.startswith('admin.message') %}active{% endif %}"><span>□</span> Messages</a>
+        <a href="{{ url_for('admin.resume') }}" class="{% if request.endpoint == 'admin.resume' %}active{% endif %}"><span>↓</span> Résumé</a>
+        <a href="{{ url_for('admin.settings') }}" class="{% if request.endpoint == 'admin.settings' %}active{% endif %}"><span>⚙</span> Profile & settings</a>
+      </nav>
+      <div class="sidebar-bottom"><a href="{{ url_for('main.index') }}" target="_blank">View website ↗</a><form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">Sign out</button></form></div>
+    </aside>
+    <div class="admin-main">
+      <header class="admin-topbar"><button class="sidebar-toggle" type="button" aria-label="Toggle navigation">☰</button><p>{{ current_user.username }}</p><span class="status-dot"></span></header>
+      <main id="admin-content" class="admin-content">
+        {% for category, message in get_flashed_messages(with_categories=true) %}<div class="admin-flash {{ category }}">{{ message }}<button aria-label="Dismiss">×</button></div>{% endfor %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+</body>
+</html>

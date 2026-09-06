@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <title>Admin sign in — {{ site.name }}</title>
+</head>
+<body class="login-body">
+  <main class="login-shell">
+    <section class="login-brand"><a href="{{ url_for('main.index') }}">RAVI®</a><p>Portfolio administration</p><blockquote>Make the work clear.<br>Keep the story current.</blockquote></section>
+    <section class="login-panel">
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p class="admin-kicker">SECURE ACCESS</p><h1>Welcome back.</h1><p>Sign in to manage projects, messages, and your public profile.</p>
+        {% for category, message in get_flashed_messages(with_categories=true) %}<div class="admin-flash {{ category }}">{{ message }}</div>{% endfor %}
+        <div class="admin-field">{{ form.identity.label }}{{ form.identity(autocomplete="username", autofocus=true) }}{% for error in form.identity.errors %}<small>{{ error }}</small>{% endfor %}</div>
+        <div class="admin-field">{{ form.password.label }}{{ form.password(autocomplete="current-password") }}{% for error in form.password.errors %}<small>{{ error }}</small>{% endfor %}</div>
+        <label class="checkbox-row">{{ form.remember() }} <span>Keep me signed in on this device</span></label>
+        {{ form.submit(class_="admin-button primary") }}
+      </form>
+    </section>
+  </main>
+</body>
+</html>

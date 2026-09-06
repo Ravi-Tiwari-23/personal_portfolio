@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}About — {{ site.name }}{% endblock %}
+{% block description %}About {{ site.name }}, {{ site.professional_title }}.{% endblock %}
+{% block content %}
+<section class="page-hero container" data-cursor-theme="dark">
+  <p class="eyebrow" data-reveal>02 / ABOUT</p>
+  <h1 data-reveal>Curiosity into<br><span class="outline">useful systems.</span></h1>
+  <div class="page-hero-foot" data-reveal><p>{{ site.professional_title }}</p><p>{{ site.location }}</p></div>
+</section>
+<section class="about-story section-pad" data-cursor-theme="light">
+  <div class="container intro-grid">
+    <p class="section-number">THE SHORT VERSION</p>
+    <div>
+      <h2 class="statement" data-reveal>Engineering is how I make complexity <em>legible</em>.</h2>
+      <div class="prose-columns" data-reveal><p>{{ site.about }}</p><p>{{ site.current_focus }} I value useful constraints, calm interfaces, maintainable code, and the small decisions that make a product feel inevitable.</p></div>
+    </div>
+  </div>
+</section>
+<section class="principles section-pad container" data-cursor-theme="dark">
+  <p class="section-number">HOW I WORK</p>
+  <div class="principle-grid">
+    <article data-reveal><span>01</span><h2>Understand before building.</h2><p>The right system starts with a precise view of the actual problem, the people around it, and the constraints that matter.</p></article>
+    <article data-reveal><span>02</span><h2>Design the whole loop.</h2><p>Interface, data, operations, and failure states are one product. I shape them together instead of treating them as separate layers.</p></article>
+    <article data-reveal><span>03</span><h2>Make quality visible.</h2><p>Clear interactions, fast feedback, accessible defaults, and maintainable implementation turn technical quality into user trust.</p></article>
+  </div>
+</section>
+<section class="about-details section-pad" data-cursor-theme="dark">
+  <div class="container split-heading"><p class="section-number">EXPERIENCE / TOOLS</p><h2>Built through<br>practice.</h2></div>
+  <div class="container about-columns">
+    <div class="timeline mini">
+      {% for item in experiences %}<article data-reveal><p>{{ item.start_date }} — {{ item.end_date or 'Present' }}</p><div><h3>{{ item.position }}</h3><h4>{{ item.company }}</h4><p>{{ item.description }}</p></div></article>{% endfor %}
+    </div>
+    <div class="tech-groups">
+      {% for category, technologies in technology_groups.items() %}<div data-reveal><h3>{{ category }}</h3><p>{% for tech in technologies %}<span>{{ tech.name }}</span>{% endfor %}</p></div>{% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

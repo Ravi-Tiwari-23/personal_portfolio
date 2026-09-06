@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} — {{ site.name }}{% endblock %}
+{% block content %}<section class="error-page container"><p>{{ code }}</p><h1>{% if code == 404 %}That page moved—or never existed.{% elif code == 403 %}This area is not available.{% elif code == 429 %}A little too much, too quickly.{% elif code == 500 %}Something went sideways.{% else %}The request could not be completed.{% endif %}</h1><a class="outline-button" href="{{ url_for('main.index') }}">Back home ↗</a></section>{% endblock %}

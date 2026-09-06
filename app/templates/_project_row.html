@@ -1,0 +1,26 @@
+<article class="project-row project-panel" data-category="{{ project.category|lower }}">
+  <a href="{{ url_for('projects.detail', slug=project.slug) }}" data-cursor="VIEW ↗" aria-label="View {{ project.title }} case study">
+    <div class="project-index">{{ '%02d'|format(loop.index if loop is defined else project.display_order) }}</div>
+    <div class="project-copy">
+      <div class="project-meta"><span>{{ project.category }}</span><span>{{ project.year }}</span></div>
+      <h3 class="line-mask"><span>{{ project.title }}</span></h3>
+      <p>{{ project.short_description }}</p>
+      <ul aria-label="Technologies">
+        {% for technology in project.technologies[:4] %}<li>{{ technology.name }}</li>{% endfor %}
+      </ul>
+    </div>
+    <div class="project-visual visual-{{ project.id % 3 }}">
+      {% if project.thumbnail %}
+        {% if project.thumbnail.startswith('static:') %}
+          <img src="{{ url_for('static', filename=project.thumbnail[7:]) }}" alt="Abstract system artwork for {{ project.title }}" loading="lazy" width="1200" height="800">
+        {% else %}
+          <img src="{{ url_for('main.media', filename=project.thumbnail) }}" alt="{{ project.title }} project thumbnail" loading="lazy" width="1200" height="800">
+        {% endif %}
+      {% else %}
+        <div class="visual-fallback" aria-hidden="true"><b>{{ project.title[0] }}</b><span>{{ project.category }}</span><i></i><i></i></div>
+      {% endif %}
+    </div>
+    <span class="project-cta" aria-hidden="true">View project ↗</span>
+    <span class="project-arrow" aria-hidden="true">↗</span>
+  </a>
+</article>

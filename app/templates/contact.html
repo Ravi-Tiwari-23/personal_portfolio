@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Contact — {{ site.name }}{% endblock %}
+{% block description %}Contact {{ site.name }} about software, product, or collaboration opportunities.{% endblock %}
+{% block content %}
+<section class="contact-page container" data-cursor-theme="dark">
+  <div class="contact-intro">
+    <p class="eyebrow" data-reveal>03 / CONTACT</p>
+    <h1 data-reveal>Let’s build<br><span class="outline">something meaningful.</span></h1>
+    <div class="contact-direct" data-reveal>
+      <p>Have an opportunity, project, collaboration, or just want to connect?</p>
+      <a href="mailto:{{ site.email }}" aria-label="Send Ravi Kumar Tiwari an email">Send me an email ↗</a>
+      <small>{{ site.email }}</small>
+      <div class="contact-socials">
+        {% if site.github %}<a href="{{ site.github }}" target="_blank" rel="noopener noreferrer" aria-label="Ravi Kumar Tiwari on GitHub, opens in a new tab" data-cursor="OPEN ↗">GitHub ↗</a>{% endif %}
+        {% if site.linkedin %}<a href="{{ site.linkedin }}" target="_blank" rel="noopener noreferrer" aria-label="Ravi Kumar Tiwari on LinkedIn, opens in a new tab" data-cursor="OPEN ↗">LinkedIn ↗</a>{% endif %}
+        <a href="{{ url_for('main.resume_download') }}" aria-label="Download Ravi Kumar Tiwari's résumé" data-cursor="DOWNLOAD ↓">Résumé ↓</a>
+      </div>
+      <span>{{ site.availability }}</span>
+    </div>
+  </div>
+  <form class="contact-form" method="post" novalidate data-reveal>
+    {{ form.hidden_tag() }}
+    <div class="field"><span>01</span>{{ form.name.label }}{{ form.name(placeholder="Your name", autocomplete="name") }}{% for error in form.name.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+    <div class="field"><span>02</span>{{ form.email.label }}{{ form.email(placeholder="you@example.com", autocomplete="email") }}{% for error in form.email.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+    <div class="field"><span>03</span>{{ form.subject.label }}{{ form.subject(placeholder="What would you like to build?") }}{% for error in form.subject.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+    <div class="field"><span>04</span>{{ form.message.label }}{{ form.message(placeholder="A little context goes a long way…", rows="5") }}{% for error in form.message.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</div>
+    <button class="circle-link form-submit" type="submit" data-magnetic><span>Send<br>message</span><i>↗</i></button>
+  </form>
+</section>
+{% endblock %}

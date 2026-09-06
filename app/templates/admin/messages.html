@@ -1,0 +1,7 @@
+{% extends "admin/base.html" %}
+{% block title %}Messages{% endblock %}
+{% block content %}
+<header class="admin-page-head"><div><p class="admin-kicker">INBOX</p><h1>Messages</h1><p>Contact enquiries from your portfolio.</p></div></header>
+<section class="panel table-panel">{% if messages %}<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Sender</th><th>Subject</th><th>Received</th><th>Status</th><th></th></tr></thead><tbody>{% for message in messages %}<tr class="{% if not message.is_read %}unread-row{% endif %}"><td><a href="{{ url_for('admin.message_detail', message_id=message.id) }}"><strong>{{ message.name }}</strong><small>{{ message.email }}</small></a></td><td>{{ message.subject }}</td><td>{{ message.created_at.strftime('%d %b %Y · %H:%M') }}</td><td><span class="status {% if message.is_read %}draft{% else %}published{% endif %}">{{ 'Read' if message.is_read else 'New' }}</span></td><td><div class="row-actions"><a href="{{ url_for('admin.message_detail', message_id=message.id) }}">Open</a><form method="post" action="{{ url_for('admin.message_delete', message_id=message.id) }}" data-confirm="Delete this message?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger">Delete</button></form></div></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="panel-empty roomy"><span>□</span><h2>Your inbox is clear</h2><p>New contact messages will appear here.</p></div>{% endif %}</section>
+{% endblock %}
+

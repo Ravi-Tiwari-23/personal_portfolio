@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit ' + project.title if project else 'New project' }}{% endblock %}
+{% macro field(input, hint='') %}<div class="admin-field">{{ input.label }}{{ input() }}{% if hint %}<p>{{ hint }}</p>{% endif %}{% for error in input.errors %}<small>{{ error }}</small>{% endfor %}</div>{% endmacro %}
+{% block content %}
+<header class="admin-page-head"><div><a class="admin-back" href="{{ url_for('admin.projects') }}">← Back to projects</a><h1>{{ 'Edit project' if project else 'New project' }}</h1><p>{{ 'Update the case study and publishing details.' if project else 'Create a new case study. You can keep it as a draft.' }}</p></div>{% if project and project.published %}<a class="admin-button" href="{{ url_for('projects.detail', slug=project.slug) }}" target="_blank">View live ↗</a>{% endif %}</header>
+<form class="editor-form" method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+  <div class="editor-main">
+    <section class="panel form-section"><div class="panel-head"><h2>Project basics</h2></div>{{ field(form.title) }}{{ field(form.slug, 'Leave blank to generate from the title.') }}{{ field(form.short_description) }}{{ field(form.description) }}<div class="form-grid three">{{ field(form.category) }}{{ field(form.year) }}{{ field(form.role) }}</div>{{ field(form.technologies, 'Separate each technology with a comma.') }}</section>
+    <section class="panel form-section"><div class="panel-head"><h2>Case study</h2></div>{{ field(form.problem) }}{{ field(form.solution) }}{{ field(form.features, 'One feature per line.') }}{{ field(form.architecture) }}{{ field(form.development_process) }}{{ field(form.results) }}</section>
+    <section class="panel form-section"><div class="panel-head"><h2>Links</h2></div><div class="form-grid">{{ field(form.github_url) }}{{ field(form.live_url) }}</div></section>
+  </div>
+  <aside class="editor-side">
+    <section class="panel form-section"><div class="panel-head"><h2>Publish</h2></div><label class="switch-row">{{ form.published() }}<span><strong>Published</strong><small>Visible on the public site</small></span></label><label class="switch-row">{{ form.featured() }}<span><strong>Featured</strong><small>Show on the homepage</small></span></label>{{ field(form.display_order) }}{{ form.submit(class_="admin-button primary full") }}</section>
+    <section class="panel form-section"><div class="panel-head"><h2>Media</h2></div>{{ field(form.thumbnail, 'JPEG, PNG, or WebP. Max 10 MB.') }}{{ field(form.gallery, 'Select multiple images for the case study gallery.') }}{% if project and project.images %}<div class="gallery-admin">{% for image in project.images %}<div><img src="{{ url_for('main.media', filename=image.image_path) }}" alt="{{ image.alt_text }}"><form method="post" action="{{ url_for('admin.image_delete', image_id=image.id) }}" data-confirm="Remove this image?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">Remove</button></form></div>{% endfor %}</div>{% endif %}</section>
+  </aside>
+</form>
+{% endblock %}

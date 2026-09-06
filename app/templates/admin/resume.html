@@ -1,0 +1,6 @@
+{% extends "admin/base.html" %}
+{% block title %}Résumé{% endblock %}
+{% block content %}
+<header class="admin-page-head"><div><p class="admin-kicker">DOCUMENT</p><h1>Résumé</h1><p>Replace the PDF served by the public download link.</p></div>{% if current_resume %}<a class="admin-button" href="{{ url_for('main.resume_download') }}">Download current ↘</a>{% endif %}</header>
+<section class="panel upload-panel"><div class="upload-copy"><span>PDF</span><div><h2>{{ 'A résumé is live' if current_resume else 'No résumé uploaded yet' }}</h2><p>{{ 'Upload a replacement below. The previous file will be removed after a successful update.' if current_resume else 'Upload a PDF to activate the résumé link across the public site.' }}</p></div></div><form method="post" enctype="multipart/form-data" novalidate>{{ form.hidden_tag() }}<div class="drop-field">{{ form.resume(accept="application/pdf") }}<label for="resume"><strong>Choose a PDF</strong><span>Maximum file size: 10 MB</span></label>{% for error in form.resume.errors %}<small>{{ error }}</small>{% endfor %}</div>{{ form.submit(class_="admin-button primary") }}</form></section>
+{% endblock %}

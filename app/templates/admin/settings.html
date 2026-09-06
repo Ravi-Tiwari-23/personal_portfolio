@@ -1,0 +1,8 @@
+{% extends "admin/base.html" %}
+{% block title %}Profile & settings{% endblock %}
+{% macro field(input, hint='') %}<div class="admin-field">{{ input.label }}{{ input() }}{% if hint %}<p>{{ hint }}</p>{% endif %}{% for error in input.errors %}<small>{{ error }}</small>{% endfor %}</div>{% endmacro %}
+{% block content %}
+<header class="admin-page-head"><div><p class="admin-kicker">SITE CONTENT</p><h1>Profile & settings</h1><p>Update the core content and links used across the portfolio.</p></div></header>
+<form class="settings-form" method="post" novalidate>{{ form.hidden_tag() }}<section class="panel form-section"><div class="panel-head"><h2>Identity</h2></div><div class="form-grid">{{ field(form.name) }}{{ field(form.professional_title) }}</div>{{ field(form.hero_statement) }}{{ field(form.about) }}{{ field(form.current_focus) }}<div class="form-grid">{{ field(form.location) }}{{ field(form.availability) }}</div></section><section class="panel form-section"><div class="panel-head"><h2>Contact & social</h2></div>{{ field(form.email) }}<div class="form-grid">{{ field(form.github) }}{{ field(form.linkedin) }}</div>{{ field(form.twitter) }}</section><section class="panel form-section"><div class="panel-head"><h2>Search & site details</h2></div>{{ field(form.site_title) }}{{ field(form.seo_description) }}{{ field(form.footer_text) }}</section>{{ form.submit(class_="admin-button primary") }}</form>
+{% endblock %}
+
