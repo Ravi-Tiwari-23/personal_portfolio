@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}{{ site.site_title }}{% endblock %}
 {% block body_class %}home-page{% endblock %}
+{% block extra_styles %}
+<link rel="preload" href="{{ url_for('static', filename='fonts/SpaceGrotesk.ttf') }}" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hero-galaxy.css') }}">
+{% endblock %}
 {% block extra_scripts %}<script type="module" src="{{ url_for('static', filename='js/hero-3d.js') }}"></script>{% endblock %}
 {% block content %}
 <section class="hero" id="home" data-cursor-theme="theme">
@@ -10,11 +14,13 @@
     <p class="hero-location">{{ site.location }}<br><span id="local-time">IST — --:--</span></p>
   </div>
   <h1 aria-label="Ravi Kumar Tiwari" class="hero-name">
-    <span class="line-mask"><span class="hero-line">RAVI KUMAR</span></span>
-    <span class="line-mask hero-line-indent"><span class="hero-line outline">TIWARI<span class="hero-dot">.</span></span></span>
+    <span class="line-mask"><span class="hero-line"><span class="hero-name-solid">RAVI KUMAR</span></span></span>
+    <span class="line-mask hero-line-indent"><span class="hero-line outline"><span class="hero-name-outline" data-text="TIWARI">TIWARI</span><span class="hero-dot">.</span></span></span>
+    <span class="hero-name-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
   </h1>
   <div class="hero-universe" data-hero-universe aria-label="Interactive orbit of Ravi's technical skills">
     <div class="hero-universe-shell" aria-hidden="true">
+      <div class="hero-space-fallback"></div>
       <canvas class="hero-orb-canvas"></canvas>
       <div class="hero-orb-fallback"><i></i><i></i><i></i></div>
       <span class="hero-orbit-guide orbit-guide-one"></span>

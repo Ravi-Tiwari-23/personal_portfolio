@@ -15,6 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% block extra_styles %}{% endblock %}
   <title>{% block title %}{{ site.site_title }}{% endblock %}</title>
   <script src="{{ url_for('static', filename='js/vendor/gsap.min.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/vendor/ScrollTrigger.min.js') }}" defer></script>

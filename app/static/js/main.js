@@ -1,11 +1,19 @@
 (() => {
   if (window.location.pathname.startsWith('/admin')) return;
 
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = motionQuery.matches;
   const finePointer = window.matchMedia('(pointer: fine)').matches && window.innerWidth >= 768;
   const gsap = window.gsap;
   const ScrollTrigger = window.ScrollTrigger;
   const themeKey = 'portfolio-theme';
+  motionQuery.addEventListener('change', (event) => {
+    reduced = event.matches;
+    if (reduced) {
+      document.body.classList.remove('cursor-ready');
+      gsap?.killTweensOf('.cursor-ring');
+    }
+  });
 
   const setTheme = (theme, persist = true) => {
     const nextTheme = theme === 'light' ? 'light' : 'dark';
@@ -53,8 +61,9 @@
     });
   }
 
-  if (!reduced && gsap && ScrollTrigger) {
+  if (gsap && ScrollTrigger) {
     gsap.registerPlugin(ScrollTrigger);
+    gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
 
     document.querySelectorAll('.chapter-heading').forEach((heading) => {
       const lines = heading.querySelectorAll('.line-mask > span');
@@ -72,10 +81,10 @@
       const heroTimeline = gsap.timeline({ delay: 0.28, defaults: { ease: 'power4.out' } });
       heroTimeline
         .from('.hero-intro', { y: 22, opacity: 0, duration: 0.7 })
-        .from('.hero-name .hero-line', { yPercent: 112, duration: 1.05, stagger: 0.12 }, '-=0.35')
-        .from('.hero-universe-shell', { scale: 0.68, opacity: 0, duration: 0.95 }, '-=0.72')
-        .from('.hero-orbit-guide', { scale: 0.65, opacity: 0, duration: 0.65, stagger: 0.08 }, '-=0.62')
-        .from('.hero-skill', { opacity: 0, duration: 0.52, stagger: 0.055 }, '-=0.48')
+        .from('.hero-name .hero-line:not(.outline)', { yPercent: 112, duration: 1.05 }, '-=0.3')
+        .call(() => document.querySelector('.hero-name')?.classList.add('is-illuminated'), [], '-=0.45')
+        .from('.hero-name .hero-line.outline', { yPercent: 110, opacity: 0, duration: 0.95 }, '-=0.45')
+        .from('.hero-skill', { opacity: 0, duration: 0.52, stagger: 0.055, clearProps: 'opacity' }, '-=0.48')
         .from('.hero-copy > *', { y: 24, opacity: 0, duration: 0.65, stagger: 0.1 }, '-=0.42')
         .from('.hero-cta', { scale: 0.72, opacity: 0, duration: 0.75 }, '-=0.5')
         .from('.scroll-note', { x: -18, opacity: 0, duration: 0.55 }, '-=0.4');
@@ -91,11 +100,13 @@
         },
       });
       heroScroll
-        .to('.hero-name', { yPercent: -17, scale: 0.94 }, 0)
+        .to('.hero-name > .line-mask:first-child', { y: -64 }, 0)
+        .to('.hero-name > .line-mask.hero-line-indent', { y: -38 }, 0)
+        .to('.hero-name-sparkles', { y: -50, opacity: 0.2 }, 0)
         .to('.hero-copy', { y: -58, opacity: 0.34 }, 0)
         .to('.hero-top', { y: -30, opacity: 0.35 }, 0)
         .to('.hero-cta', { y: -90, scale: 0.86 }, 0)
-        .to('.hero-universe', { y: -72, scale: 0.92, opacity: 0.06 }, 0.12)
+        .to('.hero-universe', { y: -22 }, 0)
         .fromTo('.intro-band', { y: 70 }, { y: 0 }, 0.52);
 
       gsap.from('.about-declaration', {
@@ -235,6 +246,7 @@
         .from('.footer-links', { y: 18, opacity: 0, stagger: 0.1 }, '-=0.48')
         .from('.footer-bottom > *', { y: 12, opacity: 0, stagger: 0.08, duration: 0.5 }, '-=0.28');
     }
+    });
   }
 
   const menuButton = document.querySelector('.menu-toggle');
@@ -286,8 +298,6 @@
     if (dot && ring && label) {
       let mouseX = -100;
       let mouseY = -100;
-      let ringX = -100;
-      let ringY = -100;
       let started = false;
 
       const setCursorTheme = (target) => {
@@ -302,27 +312,24 @@
       };
 
       document.addEventListener('pointermove', (event) => {
+        if (reduced) return;
         mouseX = event.clientX;
         mouseY = event.clientY;
         setCursorTheme(event.target);
         if (!started) {
           started = true;
-          ringX = mouseX;
-          ringY = mouseY;
           document.body.classList.add('cursor-ready');
         }
       }, { passive: true });
 
-      const animateCursor = () => {
-        if (started) {
-          ringX += (mouseX - ringX) * 0.16;
-          ringY += (mouseY - ringY) * 0.16;
-          dot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-          ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
-        }
-        window.requestAnimationFrame(animateCursor);
-      };
-      animateCursor();
+      // Reuse GSAP's existing ticker for cursor easing instead of another RAF loop.
+      document.addEventListener('pointermove', () => {
+        if (reduced) return;
+        document.body.classList.add('cursor-ready');
+        dot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+        if (gsap) gsap.to(ring, { x: mouseX, y: mouseY, duration: 0.22, ease: 'power2.out', overwrite: true });
+        else ring.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+      }, { passive: true });
 
       document.querySelectorAll('a, button, [data-cursor]').forEach((item) => {
         item.addEventListener('pointerenter', () => {
@@ -350,12 +357,13 @@
 
       document.querySelectorAll('[data-magnetic]').forEach((item) => {
         item.addEventListener('pointermove', (event) => {
+          if (reduced) return;
           const box = item.getBoundingClientRect();
           const x = (event.clientX - box.left - box.width / 2) * 0.1;
           const y = (event.clientY - box.top - box.height / 2) * 0.1;
-          item.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+          item.style.translate = `${x}px ${y}px`;
         });
-        item.addEventListener('pointerleave', () => { item.style.transform = ''; });
+        item.addEventListener('pointerleave', () => { item.style.translate = ''; });
       });
     }
   }

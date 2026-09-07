@@ -1,0 +1,142 @@
+/* Space Grotesk is distributed under SIL OFL; see ../fonts/SpaceGrotesk-OFL.txt. */
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("../fonts/SpaceGrotesk.ttf") format("truetype");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.home-page .hero { background: #050505; }
+.hero-universe { left: calc(50% - 50vw); right: auto; width: 100vw; }
+.hero-universe-shell { z-index: auto; }
+.hero-skill-cloud { z-index: auto; }
+.hero-orb-canvas { transition: opacity .6s ease; }
+.is-webgl-fallback .hero-orb-canvas { opacity: 0; }
+.is-webgl-fallback .hero-orb-fallback, .is-webgl-fallback .hero-space-fallback { opacity: 1; transition: none; }
+.is-webgl-ready .hero-orbit-guide { display: none; }
+.hero-space-fallback {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 17% 24%, #55251266, transparent 31%),
+    radial-gradient(ellipse at 79% 77%, #4e190a55, transparent 35%),
+    radial-gradient(ellipse at 85% 23%, #14212d44, transparent 23%), #050505;
+  transition: opacity .7s ease;
+}
+.hero-space-fallback::before, .hero-space-fallback::after {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    radial-gradient(circle at 17px 37px, #ff9e6baa 0 .8px, transparent 1.5px),
+    radial-gradient(circle at 83px 109px, #ffffff99 0 .6px, transparent 1.2px),
+    radial-gradient(circle at 139px 53px, #ffa37d99 0 .7px, transparent 1.4px),
+    radial-gradient(circle at 31px 167px, #cde8ff66 0 .6px, transparent 1.3px);
+  background-size: 211px 197px, 283px 257px, 331px 293px, 367px 313px;
+}
+.hero-space-fallback::after { transform: rotate(7deg) scale(1.1); opacity: .5; }
+.is-webgl-ready .hero-space-fallback { opacity: 0; }
+.hero h1 {
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+  font-weight: 700; font-size: clamp(4.8rem, 11.6vw, 12.5rem);
+  line-height: .91; letter-spacing: -.075em;
+}
+.hero-name .line-mask { padding: .04em .04em .07em; margin: -.04em -.04em -.07em; }
+.hero-name .hero-line-indent { margin-left: 14.5vw; }
+.hero-name-solid {
+  display: inline-block; color: #f5f3ed;
+  background: linear-gradient(108deg, #f5f3ed 0%, #f5f3ed 37%, #fff9ee 42%, #ff8a4c 46%, #fff6e9 49%, #b4e1ff 50%, #f5f3ed 53%, #f5f3ed 100%);
+  background-size: 330% 100%; background-position: 100% 50%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 1px #fff3d933);
+}
+.hero-name.is-illuminated .hero-name-solid { animation: cosmic-name-light 14s ease-in-out infinite; }
+.hero-name-outline { display: inline-block; position: relative; font-weight: 500; }
+.hero-name-outline::after {
+  content: attr(data-text); position: absolute; inset: 0; color: transparent;
+  -webkit-text-stroke: 1.4px #ff8a4c;
+  mask-image: linear-gradient(105deg, transparent 35%, #000 48%, transparent 60%);
+  mask-size: 350% 100%; mask-position: 100% 50%;
+  filter: drop-shadow(0 0 4px #ff6b3555); opacity: .7;
+}
+.hero-name.is-illuminated .hero-name-outline::after { animation: cosmic-outline-light 19s ease-in-out infinite; }
+.hero-name-sparkles { position: absolute; inset: 0; pointer-events: none; }
+.hero-name-sparkles i { position: absolute; width: 16px; height: 16px; opacity: 0; color: #ffe2bf; }
+.hero-name-sparkles i::before, .hero-name-sparkles i::after { content: ""; position: absolute; inset: 45% 0; background: currentColor; box-shadow: 0 0 6px #ff8a4caa; border-radius: 50%; }
+.hero-name-sparkles i::after { transform: rotate(90deg); }
+.hero-name-sparkles i:nth-child(1) { left: 5%; top: 9%; --flare-delay: 0s; --flare-time: 9s; }
+.hero-name-sparkles i:nth-child(2) { left: 27%; top: 43%; --flare-delay: -3.1s; --flare-time: 11s; }
+.hero-name-sparkles i:nth-child(3) { left: 42%; top: 6%; --flare-delay: -6.8s; --flare-time: 13s; color: #cde8ff; }
+.hero-name-sparkles i:nth-child(4) { left: 64%; top: 39%; --flare-delay: -4.3s; --flare-time: 10s; }
+.hero-name-sparkles i:nth-child(5) { left: 34%; top: 92%; --flare-delay: -8s; --flare-time: 14s; }
+.hero-name-sparkles i:nth-child(6) { left: 58%; top: 71%; --flare-delay: -1.7s; --flare-time: 12s; }
+.hero-name.is-illuminated .hero-name-sparkles i { animation: cosmic-flare var(--flare-time) var(--flare-delay) ease-in-out infinite; }
+.hero-skill:hover, .hero-skill:focus-visible, .hero-skill.is-hovered {
+  background: var(--hero-label-bg); color: var(--hero-label-text); border-color: #ff8a4c99;
+  box-shadow: 0 0 20px #ff5c3522; outline: 1px solid transparent;
+}
+.hero-skill:hover i, .hero-skill:focus-visible i, .hero-skill.is-hovered i { background: #ffb45c; box-shadow: 0 0 9px #ff8a4caa; }
+.hero-cta { box-shadow: 0 0 35px #ff5c3517; transition: box-shadow .35s, background-color .25s; }
+.hero-cta:hover, .hero-cta:focus-visible { box-shadow: 0 0 45px #ff5c3544; }
+.hero-cta i { transition: translate .3s; }
+.hero-cta:hover i { translate: 0 4px; }
+.hero-copy { text-shadow: 0 1px 12px #050505; }
+.cursor-ring.cursor--on-dark { box-shadow: 0 0 0 1px #05050555; }
+.hero.is-motion-paused *, .hero.is-motion-paused *::after { animation-play-state: paused !important; }
+
+/* Accessible, composed positions also work before JS or when WebGL is unavailable. */
+.hero-skill { left: 66%; top: 48%; transform: translate(-50%, -50%); }
+.hero-skill:nth-child(1) { left: 52%; top: 30%; }
+.hero-skill:nth-child(2) { left: 68%; top: 24%; }
+.hero-skill:nth-child(3) { left: 83%; top: 31%; }
+.hero-skill:nth-child(4) { left: 88%; top: 43%; }
+.hero-skill:nth-child(5) { left: 86%; top: 58%; }
+.hero-skill:nth-child(6) { left: 77%; top: 69%; }
+.hero-skill:nth-child(7) { left: 65%; top: 72%; }
+.hero-skill:nth-child(8) { left: 54%; top: 69%; }
+.hero-skill:nth-child(9) { left: 44%; top: 60%; }
+.hero-skill:nth-child(10) { left: 43%; top: 44%; }
+.hero-skill:nth-child(11) { left: 54%; top: 21%; }
+.hero-skill:nth-child(12) { left: 75%; top: 80%; }
+.is-webgl-ready .hero-skill, .is-static .hero-skill, .is-webgl-fallback .hero-skill { top: 0; left: 0; }
+
+html[data-theme="light"] .hero { background: #f4f1ea; }
+html[data-theme="light"] .hero-name-solid {
+  background: none; -webkit-text-fill-color: #161718;
+  -webkit-text-stroke: .8px #f4f1ea; paint-order: stroke fill;
+  filter: drop-shadow(0 0 1px #f4f1ea) drop-shadow(0 0 2px #f4f1ea);
+}
+html[data-theme="light"] .hero-name-outline { filter: drop-shadow(0 0 1px #f4f1ea) drop-shadow(0 0 2px #f4f1ea); }
+html[data-theme="light"] .hero-name-outline::after { opacity: .2; }
+html[data-theme="light"] .hero-name-sparkles { opacity: .14; }
+html[data-theme="light"] .hero-copy { text-shadow: none; }
+html[data-theme="light"] .hero-space-fallback { background: radial-gradient(ellipse at 75% 50%, #ff5c350a, transparent 50%); }
+html[data-theme="light"] .hero-space-fallback::before, html[data-theme="light"] .hero-space-fallback::after { opacity: .16; }
+
+@keyframes cosmic-name-light { 0%, 8% { background-position: 100% 50%; } 43%, 100% { background-position: 0% 50%; } }
+@keyframes cosmic-outline-light { 0% { mask-position: 100% 50%; } 55%, 100% { mask-position: 0% 50%; } }
+@keyframes cosmic-flare { 0%, 8%, 100% { opacity: 0; transform: scale(.25) rotate(0); } 3% { opacity: .9; transform: scale(1) rotate(10deg); } 5.5% { opacity: .35; transform: scale(.6) rotate(20deg); } }
+@media (max-width: 1023px) {
+  .hero-name .hero-line-indent { margin-left: 8vw; }
+  .hero h1 { font-size: 12.6vw; }
+  .hero-skill:nth-child(n+9) { display: none; }
+  .hero-name-sparkles i:nth-child(n+5) { display: none; }
+}
+@media (max-width: 767px) {
+  .hero-name .hero-line-indent { margin-left: 1vw; }
+  .hero h1 { font-size: 13.7vw; letter-spacing: -.08em; line-height: .95; }
+  .hero-name-sparkles i { width: 10px; height: 10px; }
+  .hero-name-sparkles i:nth-child(n+4) { display: none; }
+  .hero-skill:nth-child(n+7) { display: none; }
+  .hero-skill:nth-child(1) { left: 25%; top: 30%; }
+  .hero-skill:nth-child(2) { left: 65%; top: 28%; }
+  .hero-skill:nth-child(3) { left: 78%; top: 38%; }
+  .hero-skill:nth-child(4) { left: 79%; top: 59%; }
+  .hero-skill:nth-child(5) { left: 37%; top: 65%; }
+  .hero-skill:nth-child(6) { left: 20%; top: 53%; }
+  .is-webgl-ready .hero-skill, .is-static .hero-skill, .is-webgl-fallback .hero-skill { top: 0; left: 0; }
+  .hero-name.is-illuminated .hero-name-solid { animation-duration: 22s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-name-solid, .hero-name-outline::after { animation: none !important; }
+  .hero-name-solid { background-position: 100% 50%; }
+  .hero-name-sparkles { display: none; }
+}

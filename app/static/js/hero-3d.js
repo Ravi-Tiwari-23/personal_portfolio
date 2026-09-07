@@ -7,7 +7,8 @@ import * as THREE from './vendor/three.module.min.js';
   const skillElements = universe ? [...universe.querySelectorAll('[data-hero-skill]')] : [];
   if (!universe || !hero || !canvas || !skillElements.length) return;
 
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = motionQuery.matches;
   const finePointer = window.matchMedia('(pointer: fine)').matches;
   const pointer = { x: 0, y: 0, localX: 0, localY: 0, active: false };
   const pointerEase = { x: 0, y: 0 };
@@ -15,7 +16,7 @@ import * as THREE from './vendor/three.module.min.js';
     element,
     index,
     angle: (index / skillElements.length) * Math.PI * 2 + (index % 3) * 0.18,
-    speed: (0.00078 + (index % 5) * 0.00013) * (index % 3 === 0 ? -1 : 1),
+    speed: (0.000045 + (index % 5) * 0.000008) * (index % 3 === 0 ? -1 : 1),
     plane: (index % 4) - 1.5,
     phase: index * 1.73,
     x: 0,
@@ -40,7 +41,13 @@ import * as THREE from './vendor/three.module.min.js';
   let lastTime = 0;
   let resizeTimer = 0;
   let frameCount = 0;
-  let fieldStartedAt = performance.now();
+  let sceneTime = 0;
+  let introProgress = reduced ? 1 : 0;
+  let darkTarget = document.documentElement.dataset.theme === 'light' ? 0 : 1;
+  let darkIntensity = darkTarget;
+  let contextLost = false;
+  let ctaHovered = false;
+  let ctaCenter = { x: 0.9, y: 0.86 };
   let renderer = null;
   let scene = null;
   let camera = null;
@@ -57,6 +64,20 @@ import * as THREE from './vendor/three.module.min.js';
   let ambientLight = null;
   let keyLight = null;
   let warmLight = null;
+  let nebulaMaterial = null;
+  let nebulaCloudMaterial = null;
+  let nebulaScene = null;
+  let nebulaTarget = null;
+  let lastNebulaTime = -Infinity;
+  let faceMaterial = null;
+  let orbitLights = null;
+  let shootingStar = null;
+  let nextShootingStar = 7 + Math.random() * 11;
+  let shootingStarted = -1;
+  let shootingDuration = 1;
+  const shootingOrigin = new THREE.Vector2();
+  const shootingVelocity = new THREE.Vector2();
+  const orbitRings = [];
   const orbitMaterials = [];
 
   const visibleStates = () => skillStates.filter((state) => state.active);
@@ -67,6 +88,8 @@ import * as THREE from './vendor/three.module.min.js';
     height = Math.max(1, rect.height);
     centerX = width * (window.innerWidth < 768 ? 0.57 : 0.65);
     centerY = height * 0.5;
+    const ctaRect = hero.querySelector('.hero-cta')?.getBoundingClientRect();
+    if (ctaRect) ctaCenter = { x: (ctaRect.left + ctaRect.width / 2 - rect.left) / width, y: (ctaRect.top + ctaRect.height / 2 - rect.top) / height };
 
     skillStates.forEach((state) => {
       state.active = getComputedStyle(state.element).display !== 'none';
@@ -78,6 +101,7 @@ import * as THREE from './vendor/three.module.min.js';
         const ry = height * (0.25 + (state.index % 3) * 0.024);
         state.x = centerX + Math.cos(state.angle) * rx;
         state.y = centerY + Math.sin(state.angle) * ry;
+        setSkillVisual(state, Math.sin(state.angle + state.phase), 0);
       }
     });
 
@@ -86,6 +110,13 @@ import * as THREE from './vendor/three.module.min.js';
       camera.aspect = width / height;
       camera.position.z = window.innerWidth < 768 ? 5.4 * Math.max(1, 0.82 / camera.aspect) : 5.4;
       camera.updateProjectionMatrix();
+      nebulaCloudMaterial?.uniforms.uAspect.value.set(camera.aspect, 1);
+      if (nebulaTarget) {
+        const targetWidth = window.innerWidth < 768 ? 256 : 480;
+        nebulaTarget.setSize(targetWidth, Math.min(512, Math.round(targetWidth / camera.aspect)));
+        lastNebulaTime = -Infinity;
+      }
+      if (particleGeometry) particleGeometry.setDrawRange(0, getParticleCount());
       if (sceneGroup) {
         const viewHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.z;
         const viewWidth = viewHeight * camera.aspect;
@@ -95,6 +126,8 @@ import * as THREE from './vendor/three.module.min.js';
   };
 
   const applyTheme = (theme = document.documentElement.dataset.theme) => {
+    darkTarget = theme === 'light' ? 0 : 1;
+    if (reduced || !loopRunning) darkIntensity = darkTarget;
     if (!renderer) return;
     const light = theme === 'light';
     renderer.toneMappingExposure = light ? 1.18 : 1.3;
@@ -111,15 +144,108 @@ import * as THREE from './vendor/three.module.min.js';
     if (particleMaterial) {
       const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff5c35';
       particleMaterial.uniforms.uColor.value.set(accent);
-      particleMaterial.uniforms.uThemeOpacity.value = light ? 0.36 : 1;
-      particleMaterial.uniforms.uLightMode.value = light ? 1 : 0;
-      particleMaterial.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
-      particleMaterial.needsUpdate = true;
+      particleMaterial.uniforms.uThemeOpacity.value = 0.18 + darkIntensity * 0.82;
+      particleMaterial.uniforms.uLightMode.value = 1 - darkIntensity;
     }
     if (ambientLight) ambientLight.intensity = light ? 1.35 : 1.05;
     if (keyLight) keyLight.intensity = light ? 4.2 : 3.5;
     if (warmLight) warmLight.intensity = light ? 6.5 : 10;
+    if (nebulaMaterial) nebulaMaterial.uniforms.uIntensity.value = darkIntensity;
     renderer.render(scene, camera);
+  };
+
+  const getParticleCount = () => {
+    const areaCount = Math.round(width * height / 4000);
+    return window.innerWidth < 768 ? Math.max(60, Math.min(96, areaCount))
+      : window.innerWidth < 1024 ? Math.max(120, Math.min(180, areaCount))
+        : Math.max(260, Math.min(320, areaCount));
+  };
+
+  const buildAtmosphere = () => {
+    // A procedural cloud plane in the existing scene; no images or second renderer.
+    nebulaCloudMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 }, uIntensity: { value: darkIntensity },
+        uIntro: { value: reduced ? 1 : 0 },
+        uAspect: { value: new THREE.Vector2(width / height, 1) },
+        uPointer: { value: new THREE.Vector2() },
+      },
+      vertexShader: `varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = vec4(position.xy, 0.999, 1.0); }`,
+      fragmentShader: `
+        varying vec2 vUv;
+        uniform float uTime, uIntensity, uIntro;
+        uniform vec2 uAspect, uPointer;
+        float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float noise(vec2 p) {
+          vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash(i), hash(i + vec2(1,0)), f.x), mix(hash(i + vec2(0,1)), hash(i + vec2(1)), f.x), f.y);
+        }
+        float cloud(vec2 p) {
+          float n = 0.0, a = 0.5;
+          for (int i = 0; i < 4; i++) { n += a * noise(p); p = mat2(1.6,1.2,-1.2,1.6) * p + 3.1; a *= 0.5; }
+          return n;
+        }
+        void main() {
+          vec2 uv = vUv + uPointer * 0.003;
+          vec2 p = uv * vec2(min(uAspect.x, 2.0), 1.0);
+          float mist = cloud(p * 5.0 + vec2(uTime * 0.008, -uTime * 0.004));
+          float detail = cloud(p * 11.0 + mist * 2.4);
+          float upper = exp(-dot((uv - vec2(0.19,0.77)) * vec2(2.8,5.8), (uv - vec2(0.19,0.77)) * vec2(2.8,5.8)));
+          float planet = exp(-dot((uv - vec2(0.75,0.51)) * vec2(4.0,3.0), (uv - vec2(0.75,0.51)) * vec2(4.0,3.0)));
+          float lower = exp(-dot((uv - vec2(0.79,0.12)) * vec2(2.8,7.2), (uv - vec2(0.79,0.12)) * vec2(2.8,7.2)));
+          float dust = exp(-dot((uv - vec2(0.1,0.12)) * vec2(5.0,7.0), (uv - vec2(0.1,0.12)) * vec2(5.0,7.0)));
+          float filaments = smoothstep(0.23, 0.77, mist) * smoothstep(0.18, 0.78, detail);
+          vec3 warm = mix(vec3(0.32,0.026,0.008), vec3(0.72,0.19,0.052), detail);
+          vec3 color = warm * filaments * (upper * 0.65 + planet * 0.38 + lower * 0.65 + dust * 0.2);
+          color += vec3(0.035,0.07,0.14) * filaments * exp(-length((uv - vec2(0.91,0.78)) * vec2(4.0,5.0))) * 0.3;
+          // Leave the introduction in a quiet pocket while retaining depth.
+          color *= 1.0 - 0.72 * exp(-length((uv - vec2(0.5,0.11)) * vec2(7.0,12.0)));
+          gl_FragColor = vec4(color * 0.4, 1.0);
+          #include <colorspace_fragment>
+          #include <premultiplied_alpha_fragment>
+        }`,
+      transparent: false, premultipliedAlpha: true, depthTest: false, depthWrite: false, toneMapped: false,
+    });
+    // Compute slow clouds at low resolution with the SAME renderer. The main
+    // frame samples one inexpensive texture rather than full-resolution noise.
+    nebulaTarget = new THREE.WebGLRenderTarget(480, 300, { depthBuffer: false, stencilBuffer: false });
+    nebulaTarget.texture.generateMipmaps = false;
+    nebulaScene = new THREE.Scene();
+    const cloudPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), nebulaCloudMaterial);
+    cloudPlane.frustumCulled = false;
+    nebulaScene.add(cloudPlane);
+    nebulaMaterial = new THREE.ShaderMaterial({
+      uniforms: { uMap: { value: nebulaTarget.texture }, uIntensity: { value: darkIntensity }, uIntro: { value: reduced ? 1 : 0 }, uPointer: { value: new THREE.Vector2() } },
+      vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.999, 1.0); }`,
+      fragmentShader: `varying vec2 vUv; uniform sampler2D uMap; uniform float uIntensity, uIntro; uniform vec2 uPointer;
+        void main() { vec2 uv = vUv * 0.99 + 0.005 + uPointer * 0.003;
+          gl_FragColor = vec4(texture2D(uMap, uv).rgb, uIntensity * uIntro * 0.55);
+          #include <colorspace_fragment>
+          #include <premultiplied_alpha_fragment>
+        }`,
+      transparent: false, premultipliedAlpha: true, depthTest: false, depthWrite: false, toneMapped: false,
+    });
+    const nebula = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), nebulaMaterial);
+    nebula.frustumCulled = false;
+    nebula.renderOrder = -10;
+    scene.add(nebula);
+
+    const trailGeometry = new THREE.BufferGeometry();
+    trailGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(24 * 3), 3));
+    trailGeometry.setAttribute('aFade', new THREE.BufferAttribute(Float32Array.from({ length: 24 }, (_, i) => Math.pow(1 - i / 23, 1.8)), 1));
+    shootingStar = new THREE.Line(trailGeometry, new THREE.ShaderMaterial({
+      uniforms: { uOpacity: { value: 0 } },
+      vertexShader: `attribute float aFade; varying float vFade;
+        void main() { vFade = aFade; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+      fragmentShader: `uniform float uOpacity; varying float vFade;
+        void main() { gl_FragColor = vec4(mix(vec3(1.0,0.29,0.08), vec3(1.0,0.93,0.83), vFade), vFade * uOpacity); }`,
+      transparent: true, depthWrite: false, depthTest: false, toneMapped: false,
+      blending: THREE.AdditiveBlending,
+    }));
+    shootingStar.frustumCulled = false;
+    shootingStar.visible = false;
+    scene.add(shootingStar);
   };
 
   const buildScene = () => {
@@ -130,6 +256,8 @@ import * as THREE from './vendor/three.module.min.js';
         antialias: true,
         powerPreference: 'high-performance',
       });
+      let shaderFailed = false;
+      renderer.debug.onShaderError = () => { shaderFailed = true; };
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.setClearColor(0x000000, 0);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -139,6 +267,7 @@ import * as THREE from './vendor/three.module.min.js';
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(33, width / height, 0.1, 100);
       camera.position.set(0, 0, 5.4);
+      buildAtmosphere();
 
       sceneGroup = new THREE.Group();
       scene.add(sceneGroup);
@@ -161,7 +290,7 @@ import * as THREE from './vendor/three.module.min.js';
         wireframe: true,
         depthWrite: false,
       });
-      const wireMesh = new THREE.Mesh(coreGeometry.clone(), wireMaterial);
+      const wireMesh = new THREE.Mesh(coreGeometry, wireMaterial);
       wireMesh.scale.setScalar(1.035);
       coreMesh.add(wireMesh);
 
@@ -178,7 +307,7 @@ import * as THREE from './vendor/three.module.min.js';
       ].forEach(([radius, tube, x, y, z], index) => {
         const ring = new THREE.Mesh(
           new THREE.TorusGeometry(radius, tube, 6, 96),
-          index === 1 ? orbitMaterial.clone() : orbitMaterial,
+          orbitMaterial.clone(),
         );
         ring.rotation.set(x, y, z);
         if (index === 1) {
@@ -186,18 +315,47 @@ import * as THREE from './vendor/three.module.min.js';
           ring.material.opacity = 0.18;
         }
         orbitMaterials.push(ring.material);
+        orbitRings.push({ ring, radius, phase: index * 2.1 });
         sceneGroup.add(ring);
       });
+      orbitMaterial.dispose();
+      const orbitGeometry = new THREE.BufferGeometry();
+      orbitGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(9), 3));
+      orbitLights = new THREE.Points(orbitGeometry, new THREE.PointsMaterial({
+        color: 0xffb45c, size: 0.034, transparent: true, opacity: 0.8, depthWrite: false,
+      }));
+      sceneGroup.add(orbitLights);
+
+      // A handful of the existing planet's triangles illuminate independently.
+      const facePositions = [], facePhases = [];
+      const source = coreGeometry.attributes.position;
+      for (let i = 0; i < 12; i += 1) {
+        const face = Math.floor(Math.random() * (source.count / 3)) * 3;
+        for (let vertex = 0; vertex < 3; vertex += 1) {
+          facePositions.push(source.getX(face + vertex), source.getY(face + vertex), source.getZ(face + vertex));
+          facePhases.push(i * 2.399);
+        }
+      }
+      const faces = new THREE.BufferGeometry();
+      faces.setAttribute('position', new THREE.Float32BufferAttribute(facePositions, 3));
+      faces.setAttribute('aPhase', new THREE.Float32BufferAttribute(facePhases, 1));
+      faceMaterial = new THREE.ShaderMaterial({
+        uniforms: { uTime: { value: 0 }, uIntensity: { value: darkIntensity } },
+        vertexShader: `attribute float aPhase; varying float vPhase;
+          void main() { vPhase = aPhase; gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.028, 1.0); }`,
+        fragmentShader: `uniform float uTime, uIntensity; varying float vPhase;
+          void main() { float pulse = pow(0.5 + 0.5 * sin(uTime * 0.42 + vPhase), 12.0);
+          gl_FragColor = vec4(1.0,0.19,0.045,pulse * 0.19 * uIntensity); }`,
+        transparent: true, depthWrite: false, side: THREE.FrontSide, blending: THREE.AdditiveBlending,
+      });
+      coreMesh.add(new THREE.Mesh(faces, faceMaterial));
 
       // Keep the star field dense at every viewport size without creating
       // thousands of DOM nodes (the whole field is still one GPU draw call).
-      const areaCount = Math.round((width * height) / 4000);
-      const particleCount = window.innerWidth < 768
-        ? Math.max(72, Math.min(96, areaCount))
-        : window.innerWidth < 1024
-          ? Math.max(135, Math.min(190, areaCount))
-          : Math.max(260, Math.min(340, areaCount));
+      // Allocate once; drawRange adapts density on resize without scene rebuilds.
+      const particleCount = 320;
       const particlePositions = new Float32Array(particleCount * 3);
+      const particleColors = new Float32Array(particleCount * 3);
       const particleSizes = new Float32Array(particleCount);
       const particleMinAlphas = new Float32Array(particleCount);
       const particleMaxAlphas = new Float32Array(particleCount);
@@ -210,19 +368,7 @@ import * as THREE from './vendor/three.module.min.js';
         const jitter = 0.035;
         let nx = (index * 0.61803398875 + Math.random() * jitter) % 1;
         let ny = (index * 0.75487766625 + Math.random() * jitter) % 1;
-        const nearOrb = index % 9 === 0;
-        if (nearOrb) {
-          nx = 0.54 + Math.random() * 0.4;
-          ny = 0.18 + Math.random() * 0.65;
-        }
-
-        const initiallyBehindType = nx < 0.62 && ny > 0.2 && ny < 0.72;
-        // Move only some stars away from the headline. The remainder stay
-        // faint behind the type so the complete black canvas still feels full.
-        if (initiallyBehindType && index % 4 === 0) {
-          nx = index % 2 === 0 ? 0.65 + Math.random() * 0.31 : nx;
-          ny = index % 2 === 0 ? ny : (index % 4 === 1 ? Math.random() * 0.18 : 0.75 + Math.random() * 0.21);
-        }
+        const nearOrb = nx > 0.52 && nx < 0.88 && ny > 0.2 && ny < 0.7;
 
         const layerRoll = ((index * 47) % 100) / 100;
         const layer = layerRoll < 0.58 ? 0 : layerRoll < 0.9 ? 1 : 2;
@@ -233,25 +379,28 @@ import * as THREE from './vendor/three.module.min.js';
             ? -0.5 + layerDepth * 0.82
             : 0.42 + layerDepth * 0.68;
         const brightnessRoll = ((index * 37) % 100) / 100;
-        const brightness = brightnessRoll < 0.7 ? 0 : brightnessRoll < 0.9 ? 1 : 2;
+        const brightness = brightnessRoll < 0.65 ? 0 : brightnessRoll < 0.85 ? 1 : brightnessRoll < 0.95 ? 2 : 3;
         const protectedText = nx < 0.62 && ny > 0.2 && ny < 0.72;
         const protectedCta = nx > 0.76 && ny > 0.7;
         const protectedScrollLabel = nx < 0.1 && ny > 0.55;
         const protectedNav = ny < 0.1;
-        const quietZone = protectedText || protectedCta || protectedScrollLabel || protectedNav;
-        const quietMultiplier = quietZone ? 0.44 : nearOrb ? 1.1 : 1;
-        const sizeRanges = [[1.8, 2.8], [2.8, 4.2], [4.2, 6.4]];
-        const alphaRanges = [[0.24, 0.36, 0.56, 0.76], [0.34, 0.48, 0.7, 0.92], [0.48, 0.64, 0.92, 1]];
-        const sizeRange = sizeRanges[layer];
+        const protectedCopy = nx > 0.32 && nx < 0.7 && ny > 0.78;
+        const quietZone = protectedText || protectedCta || protectedScrollLabel || protectedNav || protectedCopy;
+        const quietMultiplier = quietZone ? 0.52 : 1;
+        const sizeRanges = [[1.25, 2.25], [2.2, 3.6], [3.4, 5.2], [5.5, 8.5]];
+        const alphaRanges = [[0.16, 0.28, 0.38, 0.58], [0.22, 0.38, 0.6, 0.8], [0.28, 0.46, 0.8, 1], [0.18, 0.3, 0.92, 1]];
+        const sizeRange = sizeRanges[brightness];
         const alphaRange = alphaRanges[brightness];
-        const duration = 2.5 + Math.random() * 4.5;
-        particleSizes[index] = (sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0])) * (window.innerWidth < 768 ? 0.86 : 1);
+        const duration = 2.5 + Math.random() * 5.5;
+        particleSizes[index] = sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0]);
+        const palette = [0xff5c35, 0xff6b35, 0xff3d1f, 0xffb45c, 0xff5c35, 0xff6b35, 0xffffff, 0xcde8ff, 0x8ac7ff, 0xff5c35];
+        new THREE.Color(palette[index % palette.length]).toArray(particleColors, index * 3);
         particleMinAlphas[index] = (alphaRange[0] + Math.random() * (alphaRange[1] - alphaRange[0])) * quietMultiplier;
         particleMaxAlphas[index] = (alphaRange[2] + Math.random() * (alphaRange[3] - alphaRange[2])) * quietMultiplier;
         particlePhases[index] = Math.random() * Math.PI * 2;
         particleTwinkleSpeeds[index] = (Math.PI * 2) / duration;
-        particleBursts[index] = brightness === 2 && index % 2 === 0 ? 1 : 0;
-        particleLightVisibility[index] = index % 10 < 7 ? 1 : 0;
+        particleBursts[index] = brightness === 3 ? 1 : 0;
+        particleLightVisibility[index] = index % 5 === 0 ? 1 : 0;
         particleData.push({
           nx,
           ny,
@@ -265,6 +414,8 @@ import * as THREE from './vendor/three.module.min.js';
       }
       particleGeometry = new THREE.BufferGeometry();
       particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+      particleGeometry.setAttribute('aColor', new THREE.BufferAttribute(particleColors, 3));
+      particleGeometry.setDrawRange(0, getParticleCount());
       particleGeometry.setAttribute('aSize', new THREE.BufferAttribute(particleSizes, 1));
       particleGeometry.setAttribute('aMinAlpha', new THREE.BufferAttribute(particleMinAlphas, 1));
       particleGeometry.setAttribute('aMaxAlpha', new THREE.BufferAttribute(particleMaxAlphas, 1));
@@ -285,6 +436,7 @@ import * as THREE from './vendor/three.module.min.js';
         },
         vertexShader: `
           attribute float aSize;
+          attribute vec3 aColor;
           attribute float aMinAlpha;
           attribute float aMaxAlpha;
           attribute float aPhase;
@@ -300,6 +452,7 @@ import * as THREE from './vendor/three.module.min.js';
           uniform float uIntroFade;
           varying float vAlpha;
           varying float vBurst;
+          varying vec3 vColor;
           void main() {
             float primaryWave = 0.5 + 0.5 * sin(uTime * aTwinkleSpeed + aPhase);
             float shimmerWave = 0.5 + 0.5 * sin(uTime * aTwinkleSpeed * 0.43 + aPhase * 1.71);
@@ -307,35 +460,38 @@ import * as THREE from './vendor/three.module.min.js';
             float twinkle = mix(0.38, animatedTwinkle, uMotion);
             float twinkleScale = mix(0.78, 1.28, twinkle);
             float themeVisibility = mix(1.0, aLightVisibility, uLightMode);
+            vColor = mix(aColor, vec3(0.7, 0.12, 0.035), uLightMode);
             vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
             gl_Position = projectionMatrix * viewPosition;
-            gl_PointSize = aSize * uPixelRatio * 2.05 * twinkleScale * (5.0 / max(1.0, -viewPosition.z));
+            gl_PointSize = aSize * uPixelRatio * 2.1 * twinkleScale;
             vAlpha = mix(aMinAlpha, aMaxAlpha, twinkle) * themeVisibility * uThemeOpacity * uScrollFade * uIntroFade;
-            vBurst = aBurst;
+            vBurst = aBurst * smoothstep(0.55, 0.95, twinkle);
           }
         `,
         fragmentShader: `
           uniform vec3 uColor;
           varying float vAlpha;
           varying float vBurst;
+          varying vec3 vColor;
           void main() {
             vec2 point = gl_PointCoord - vec2(0.5);
             float radius = length(point);
-            float core = 1.0 - smoothstep(0.08, 0.42, radius);
-            float glow = 1.0 - smoothstep(0.18, 0.5, radius);
+            float core = 1.0 - smoothstep(0.015, 0.17, radius);
+            float glow = exp(-radius * 8.0) * 0.3;
             float horizontal = (1.0 - smoothstep(0.0, 0.065, abs(point.y))) * (1.0 - smoothstep(0.14, 0.5, abs(point.x)));
             float vertical = (1.0 - smoothstep(0.0, 0.065, abs(point.x))) * (1.0 - smoothstep(0.14, 0.5, abs(point.y)));
-            float starburst = max(horizontal, vertical) * vBurst * 0.28;
-            float shape = max(core, glow * 0.28 + starburst);
+            float starburst = max(horizontal, vertical) * vBurst * 0.7;
+            float shape = max(core + glow, starburst);
             if (shape <= 0.01) discard;
-            gl_FragColor = vec4(uColor, vAlpha * shape);
+            gl_FragColor = vec4(mix(vColor, vec3(1.0,0.88,0.72), core * vBurst * 0.4), vAlpha * shape);
+            #include <colorspace_fragment>
           }
         `,
         transparent: true,
         depthWrite: false,
         depthTest: false,
         toneMapped: false,
-        blending: THREE.AdditiveBlending,
+        blending: THREE.NormalBlending,
       });
       particleCloud = new THREE.Points(
         particleGeometry,
@@ -343,7 +499,6 @@ import * as THREE from './vendor/three.module.min.js';
       );
       particleCloud.frustumCulled = false;
       scene.add(particleCloud);
-      fieldStartedAt = performance.now();
 
       ambientLight = new THREE.AmbientLight(0xf5f3ed, 1.05);
       scene.add(ambientLight);
@@ -356,11 +511,15 @@ import * as THREE from './vendor/three.module.min.js';
 
       measure(true);
       applyTheme();
-      updateScene(0, 1);
+      updateScene(sceneTime, 1);
+      if (shaderFailed) throw new Error('Hero shader unavailable');
       universe.classList.add('is-webgl-ready');
-    } catch {
+    } catch (error) {
       universe.classList.add('is-webgl-fallback');
+      universe.classList.remove('is-webgl-ready');
+      renderer?.dispose();
       renderer = null;
+      settleStaticSkills();
     }
   };
 
@@ -375,7 +534,7 @@ import * as THREE from './vendor/three.module.min.js';
     state.element.style.setProperty('--skill-opacity', opacity);
     state.element.style.setProperty('--skill-tilt', `${state.hovered ? 0 : tilt.toFixed(2)}deg`);
     state.element.style.zIndex = state.hovered ? '9' : z > 0.02 ? '7' : '2';
-    state.element.style.filter = !state.hovered && depth < 0.23 ? 'blur(.45px)' : 'none';
+    state.element.style.filter = !state.hovered && depth < 0.23 ? 'blur(.25px)' : 'none';
     state.element.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(var(--skill-scale)) rotate(var(--skill-tilt))`;
   };
 
@@ -385,8 +544,8 @@ import * as THREE from './vendor/three.module.min.js';
       const angle = (index / states.length) * Math.PI * 2 - Math.PI / 2;
       const rx = width * (window.innerWidth < 768 ? 0.34 : 0.31);
       const ry = height * (window.innerWidth < 768 ? 0.32 : 0.28);
-      state.x = centerX + Math.cos(angle) * rx;
-      state.y = centerY + Math.sin(angle) * ry;
+      state.x = Math.max(state.width / 2 + 8, Math.min(width - state.width / 2 - 8, centerX + Math.cos(angle) * rx));
+      state.y = Math.max(state.height / 2 + 8, Math.min(height - state.height / 2 - 8, centerY + Math.sin(angle) * ry));
       setSkillVisual(state, index % 2 ? -0.3 : 0.3, 0, true);
     });
   };
@@ -471,25 +630,44 @@ import * as THREE from './vendor/three.module.min.js';
     scrollProgress += (targetScrollProgress - scrollProgress) * 0.07 * frameScale;
 
     const seconds = elapsed * 0.001;
+    darkIntensity += (darkTarget - darkIntensity) * (reduced ? 1 : Math.min(1, 0.07 * frameScale));
+    introProgress = reduced ? 1 : Math.min(1, seconds / 3.6);
+    if (lastNebulaTime === -Infinity || (!reduced && darkIntensity > 0.02 && seconds - lastNebulaTime > 0.35)) {
+      nebulaCloudMaterial.uniforms.uTime.value = reduced ? 0 : seconds;
+      renderer.setRenderTarget(nebulaTarget);
+      renderer.render(nebulaScene, camera);
+      renderer.setRenderTarget(null);
+      lastNebulaTime = seconds;
+    }
+    nebulaMaterial.uniforms.uIntensity.value = darkIntensity;
+    nebulaMaterial.uniforms.uIntro.value = reduced ? 1 : Math.min(1, seconds / 1.1);
+    nebulaMaterial.uniforms.uPointer.value.set(reduced ? 0 : pointerEase.x, reduced ? 0 : pointerEase.y);
+    faceMaterial.uniforms.uTime.value = reduced ? 0 : seconds;
+    faceMaterial.uniforms.uIntensity.value = darkIntensity;
+    particleMaterial.uniforms.uThemeOpacity.value = 0.18 + darkIntensity * 0.82;
+    particleMaterial.uniforms.uLightMode.value = 1 - darkIntensity;
     sceneGroup.rotation.y = seconds * 0.04 + pointerEase.x * 0.12 + scrollProgress * 0.22;
     sceneGroup.rotation.x = Math.sin(seconds * 0.16) * 0.04 - pointerEase.y * 0.075 + scrollProgress * 0.055;
     sceneGroup.rotation.z = Math.sin(seconds * 0.1) * 0.018;
     const baseOrbScale = window.innerWidth < 768 ? 0.62 : 0.75;
-    sceneGroup.scale.setScalar(baseOrbScale + scrollProgress * 0.03);
-    coreMesh.rotation.y += 0.00082 * frameScale;
-    coreMesh.rotation.x += 0.00024 * frameScale;
+    const orbIntro = reduced ? 1 : THREE.MathUtils.smoothstep(seconds, 1.8, 3.1);
+    sceneGroup.scale.setScalar((baseOrbScale + scrollProgress * 0.03) * orbIntro);
+    coreMesh.rotation.y += reduced ? 0 : 0.00082 * frameScale;
+    coreMesh.rotation.x += reduced ? 0 : 0.00024 * frameScale;
     coreMesh.position.y = Math.sin(seconds * 0.42) * 0.035;
 
     if (particleCloud && particleGeometry && particleData.length) {
       const position = particleGeometry.attributes.position;
       const perspective = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
-      const fieldSeconds = Math.max(0, (elapsed - fieldStartedAt) * 0.001);
-      particleData.forEach((particle, index) => {
+      const fieldSeconds = seconds;
+      const count = particleGeometry.drawRange.count;
+      for (let index = 0; index < count; index += 1) {
+        const particle = particleData[index];
         const distance = camera.position.z - particle.z;
         const viewHeight = 2 * perspective * distance;
         const viewWidth = viewHeight * camera.aspect;
         const expansion = 1 + scrollProgress * (0.018 + particle.layer * 0.014);
-        const pointerRange = finePointer ? 0.006 + particle.layer * 0.012 : 0;
+        const pointerRange = finePointer && !reduced && window.innerWidth >= 1024 ? (3 + particle.layer * 4) / width * viewWidth : 0;
         const movement = reduced ? 0 : 1;
         const driftX = Math.sin(seconds * (0.07 + particle.layer * 0.035) + particle.phase) * particle.driftX * movement;
         const driftY = Math.cos(seconds * (0.058 + particle.layer * 0.031) + particle.phase) * particle.driftY * movement;
@@ -500,16 +678,56 @@ import * as THREE from './vendor/three.module.min.js';
         position.array[offset] = ((particle.nx - 0.5) * viewWidth + driftX + orbitalX + pointerEase.x * pointerRange) * expansion;
         position.array[offset + 1] = ((0.5 - particle.ny) * viewHeight + driftY + orbitalY - pointerEase.y * pointerRange + scrollLift) * expansion;
         position.array[offset + 2] = particle.z;
-      });
+        // Repel only nearby foreground stars, with a slightly wider CTA halo.
+        if (!reduced && finePointer && window.innerWidth >= 1024 && particle.layer > 0 && (pointer.active || ctaHovered)) {
+          const sourceX = ctaHovered ? ctaCenter.x : pointer.localX / width;
+          const sourceY = ctaHovered ? ctaCenter.y : pointer.localY / height;
+          const dx = (particle.nx - sourceX) * width;
+          const dy = (particle.ny - sourceY) * height;
+          const distancePx = Math.hypot(dx, dy) || 1;
+          const reach = ctaHovered ? 145 : 85;
+          const push = Math.max(0, 1 - distancePx / reach) * (ctaHovered ? 12 : 5);
+          position.array[offset] += dx / distancePx * push / width * viewWidth;
+          position.array[offset + 1] -= dy / distancePx * push / height * viewHeight;
+        }
+      }
       position.needsUpdate = true;
       particleMaterial.uniforms.uTime.value = fieldSeconds;
-      particleMaterial.uniforms.uIntroFade.value = reduced ? 1 : 0.1 + Math.min(1, fieldSeconds / 1.8) * 0.9;
-      particleMaterial.uniforms.uScrollFade.value = Math.max(0.04, 1 - scrollProgress * 0.96);
+      particleMaterial.uniforms.uIntroFade.value = reduced ? 1 : 0.1 + Math.min(1, fieldSeconds / 1.3) * 0.9;
+      particleMaterial.uniforms.uScrollFade.value = Math.max(0.25, 1 - scrollProgress * 0.7);
+    }
+    const orbitPosition = orbitLights.geometry.attributes.position;
+    orbitRings.forEach(({ ring, radius, phase }, index) => {
+      const angle = seconds * (0.075 + index * 0.016) + phase;
+      const point = new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius, 0).applyEuler(ring.rotation);
+      orbitPosition.setXYZ(index, point.x, point.y, point.z);
+      ring.material.opacity = (index === 1 ? 0.15 : 0.095) + (0.5 + 0.5 * Math.sin(angle * 2)) * 0.025 * darkIntensity;
+    });
+    orbitPosition.needsUpdate = true;
+    orbitLights.material.opacity = 0.16 + darkIntensity * 0.7;
+
+    if (!reduced && window.innerWidth >= 1024 && darkIntensity > 0.5 && seconds >= nextShootingStar && shootingStarted < 0) {
+      shootingStarted = seconds;
+      shootingDuration = 0.6 + Math.random() * 0.8;
+      shootingOrigin.set(0.15 + Math.random() * 0.8, 0.75 + Math.random() * 0.2);
+      shootingVelocity.set(-0.25 - Math.random() * 0.22, -0.22 - Math.random() * 0.15);
+    }
+    if (shootingStarted >= 0) {
+      const progress = (seconds - shootingStarted) / shootingDuration;
+      shootingStar.visible = !reduced && darkIntensity > 0.5 && progress < 1 && window.innerWidth >= 1024;
+      shootingStar.material.uniforms.uOpacity.value = Math.sin(Math.min(1, progress) * Math.PI) * darkIntensity * 0.8;
+      const trail = shootingStar.geometry.attributes.position;
+      for (let i = 0; i < trail.count; i += 1) {
+        const t = progress - i / trail.count * 0.17;
+        trail.setXYZ(i, (shootingOrigin.x + shootingVelocity.x * t) * 2 - 1, (shootingOrigin.y + shootingVelocity.y * t) * 2 - 1, 0);
+      }
+      trail.needsUpdate = true;
+      if (progress >= 1 || reduced) { shootingStarted = -1; nextShootingStar = seconds + 7 + Math.random() * 11; }
     }
     warmLight.position.x = 2.1 + pointerEase.x * 0.7;
     warmLight.position.y = -1.1 - pointerEase.y * 0.5;
 
-    if (++frameCount % 3 === 0 && coreGeometry && coreBasePositions) {
+    if (!reduced && ++frameCount % 3 === 0 && coreGeometry && coreBasePositions) {
       const position = coreGeometry.attributes.position;
       for (let index = 0; index < position.count; index += 1) {
         const offset = index * 3;
@@ -528,30 +746,31 @@ import * as THREE from './vendor/three.module.min.js';
   };
 
   const animate = (timestamp) => {
-    if (!heroVisible || document.hidden || reduced) {
+    if (!heroVisible || document.hidden || reduced || !renderer || contextLost) {
       loopRunning = false;
       return;
     }
-    const delta = lastTime ? Math.min(32, timestamp - lastTime) : 16.67;
+    const delta = lastTime ? Math.min(250, timestamp - lastTime) : 16.67;
     lastTime = timestamp;
-    const frameScale = delta / 16.67;
-    updateScene(timestamp, frameScale);
+    const frameScale = Math.min(2, delta / 16.67);
+    sceneTime += delta;
+    updateScene(sceneTime, frameScale);
     if (!renderer) {
       scrollProgress += (targetScrollProgress - scrollProgress) * 0.07 * frameScale;
     }
-    updateSkills(frameScale, timestamp);
+    if (introProgress > 0.75) updateSkills(frameScale, sceneTime);
     rafId = window.requestAnimationFrame(animate);
   };
 
   const startLoop = () => {
-    if (loopRunning || reduced || !heroVisible || document.hidden) return;
+    if (loopRunning || reduced || !heroVisible || document.hidden || !renderer || contextLost) return;
     loopRunning = true;
     lastTime = 0;
     rafId = window.requestAnimationFrame(animate);
   };
 
   const updatePointer = (event) => {
-    if (!finePointer || window.innerWidth < 768) return;
+    if (reduced || !finePointer || window.innerWidth < 1024) return;
     const rect = universe.getBoundingClientRect();
     pointer.localX = event.clientX - rect.left;
     pointer.localY = event.clientY - rect.top;
@@ -560,12 +779,15 @@ import * as THREE from './vendor/three.module.min.js';
     pointer.active = true;
   };
 
-  universe.addEventListener('pointermove', updatePointer, { passive: true });
-  universe.addEventListener('pointerleave', () => {
+  hero.addEventListener('pointermove', updatePointer, { passive: true });
+  hero.addEventListener('pointerleave', () => {
     pointer.active = false;
     pointer.x = 0;
     pointer.y = 0;
   });
+  const cta = hero.querySelector('.hero-cta');
+  cta?.addEventListener('pointerenter', () => { ctaHovered = true; });
+  cta?.addEventListener('pointerleave', () => { ctaHovered = false; });
   skillStates.forEach((state) => {
     const activate = () => {
       state.hovered = true;
@@ -591,19 +813,49 @@ import * as THREE from './vendor/three.module.min.js';
     window.clearTimeout(resizeTimer);
     resizeTimer = window.setTimeout(() => {
       measure(true);
-      if (reduced) {
+      if (reduced || !renderer || contextLost) {
         settleStaticSkills();
-        renderer?.render(scene, camera);
+        updateScene(sceneTime, 1);
       }
     }, 120);
   }, { passive: true });
-  document.addEventListener('visibilitychange', startLoop);
+  const syncVisibility = () => {
+    hero.classList.toggle('is-motion-paused', document.hidden || !heroVisible);
+    if (document.hidden || !heroVisible) { cancelAnimationFrame(rafId); loopRunning = false; }
+    else startLoop();
+  };
+  document.addEventListener('visibilitychange', syncVisibility);
 
   const visibilityObserver = new IntersectionObserver((entries) => {
     heroVisible = entries[0]?.isIntersecting ?? true;
-    if (heroVisible) startLoop();
+    syncVisibility();
   }, { threshold: 0.01 });
   visibilityObserver.observe(hero);
+  motionQuery.addEventListener('change', (event) => {
+    reduced = event.matches;
+    particleMaterial && (particleMaterial.uniforms.uMotion.value = reduced ? 0 : 1);
+    if (reduced) {
+      cancelAnimationFrame(rafId); loopRunning = false;
+      pointer.x = pointer.y = pointerEase.x = pointerEase.y = 0;
+      targetScrollProgress = scrollProgress = 0;
+      settleStaticSkills(); updateScene(sceneTime, 1);
+    } else startLoop();
+    universe.classList.toggle('is-static', reduced);
+  });
+  canvas.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault(); contextLost = true;
+    cancelAnimationFrame(rafId); loopRunning = false;
+    universe.classList.remove('is-webgl-ready');
+    universe.classList.add('is-webgl-fallback');
+    settleStaticSkills();
+  });
+  canvas.addEventListener('webglcontextrestored', () => {
+    contextLost = false;
+    lastNebulaTime = -Infinity;
+    universe.classList.remove('is-webgl-fallback');
+    universe.classList.add('is-webgl-ready');
+    measure(true); updateScene(sceneTime, 1); startLoop();
+  });
 
   measure(true);
   buildScene();
@@ -615,11 +867,17 @@ import * as THREE from './vendor/three.module.min.js';
     startLoop();
   }
 
-  window.addEventListener('pagehide', () => {
+  window.addEventListener('pageshow', (event) => { if (event.persisted) syncVisibility(); });
+  window.addEventListener('pagehide', (event) => {
     window.cancelAnimationFrame(rafId);
+    loopRunning = false;
+    if (event.persisted) return;
     visibilityObserver.disconnect();
     coreGeometry?.dispose();
     particleGeometry?.dispose();
+    nebulaTarget?.dispose();
+    nebulaCloudMaterial?.dispose();
+    nebulaScene?.children.forEach(object => object.geometry?.dispose());
     scene?.traverse((object) => {
       if (object.material) {
         const materials = Array.isArray(object.material) ? object.material : [object.material];
@@ -628,5 +886,5 @@ import * as THREE from './vendor/three.module.min.js';
       if (object.geometry && object.geometry !== coreGeometry && object.geometry !== particleGeometry) object.geometry.dispose?.();
     });
     renderer?.dispose();
-  }, { once: true });
+  });
 })();
