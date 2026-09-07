@@ -302,7 +302,7 @@
 
       const setCursorTheme = (target) => {
         const sectionTheme = target?.closest?.('[data-cursor-theme]')?.dataset.cursorTheme;
-        const theme = sectionTheme === 'light' || sectionTheme === 'dark'
+        const theme = !document.body.classList.contains('galaxy-site') && (sectionTheme === 'light' || sectionTheme === 'dark')
           ? sectionTheme
           : document.documentElement.dataset.theme;
         [dot, ring].forEach((part) => {

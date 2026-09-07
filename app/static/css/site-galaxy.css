@@ -1,0 +1,65 @@
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("../fonts/SpaceGrotesk.ttf") format("truetype");
+  font-weight: 300 700; font-style: normal; font-display: swap;
+}
+
+.galaxy-site { isolation: isolate; }
+.galaxy-site #main-content, .galaxy-site .site-footer { position: relative; z-index: 1; }
+.site-galaxy { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; contain: strict; }
+.site-galaxy-canvas { display: block; width: 100%; height: 100%; }
+.site-galaxy::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background:
+    radial-gradient(ellipse at 16% 24%, #61241140, transparent 40%),
+    radial-gradient(ellipse at 81% 75%, #54211140, transparent 42%),
+    radial-gradient(ellipse at 85% 15%, #19345420, transparent 30%),
+    radial-gradient(circle at 23px 69px, #ffac7877 0 .8px, transparent 1.4px) 0 0 / 197px 227px,
+    radial-gradient(circle at 137px 43px, #cde8ff66 0 .65px, transparent 1.3px) 0 0 / 311px 281px;
+}
+.site-galaxy.is-ready::before { opacity: 0; }
+
+html[data-theme="dark"] .galaxy-site { --bg: #050505; --muted-light: #b0aaa5; }
+html[data-theme="dark"] .galaxy-site :is(.intro-band, .capabilities, .experience, .about-story, .case-nav, .about-details, .home-contact, .work, .site-footer) {
+  background: rgba(5,5,5,.12); color: var(--text);
+}
+html[data-theme="dark"] .galaxy-site :is(.about-content .chapter-heading, .skill-row, .about-declaration) { color: var(--text); }
+html[data-theme="dark"] .galaxy-site :is(.skill-list, .skill-row, .experience .timeline, .experience .timeline article, .about-keywords span, .case-nav a) { border-color: rgba(245,243,237,.2); }
+html[data-theme="dark"] .galaxy-site :is(.section-number, .experience .timeline h4, .experience .timeline article > span) { color: var(--accent-hover); }
+html[data-theme="dark"] .galaxy-site .feature-band { background: rgba(81,25,12,.28); color: var(--text); }
+html[data-theme="dark"] .galaxy-site .feature-band .section-number { color: var(--accent-hover); }
+html[data-theme="dark"] .galaxy-site .project-panel { background: rgba(12,11,11,.8); }
+html[data-theme="dark"] .galaxy-site .project-panel:nth-child(even) { background: rgba(20,13,10,.8); }
+html[data-theme="dark"] .galaxy-site .contact-form { background: rgba(5,5,5,.3); }
+html[data-theme="dark"] .galaxy-site :is(.field input, .field textarea)::placeholder { color: #a6a39c; }
+html[data-theme="dark"] .galaxy-site .field-error { color: #ffa490; }
+.galaxy-site .contact-form { border-radius: .25rem; }
+
+.galaxy-site :is(.page-hero h1, .contact-intro h1, .case-hero h1, .chapter-heading, .footer-name p) { font-family: "Space Grotesk", "Manrope", sans-serif; }
+.galaxy-site :is(.page-hero h1, .case-hero h1) { font-weight: 600; line-height: .88; }
+.galaxy-site .cosmic-heading { animation: site-heading-light 13s ease-in-out infinite; animation-play-state: paused; }
+.galaxy-site .cosmic-heading.is-in-view { animation-play-state: running; }
+.galaxy-site.galaxy-paused .cosmic-heading { animation-play-state: paused; }
+@keyframes site-heading-light {
+  0%, 20%, 75%, 100% { text-shadow: 0 0 0 transparent; }
+  43% { text-shadow: -2px 0 16px #ff8a4c2b, 2px 0 3px #fff1d914; }
+  58% { text-shadow: 2px 0 14px #9dd7ff18; }
+}
+
+html[data-theme="light"] .site-galaxy { opacity: .2; }
+html[data-theme="light"] .site-galaxy::before { background: radial-gradient(ellipse at 80% 35%, #ff5c3514, transparent 55%); }
+html[data-theme="light"] .galaxy-site :is(.intro-band, .capabilities, .experience, .about-story, .about-details, .home-contact, .site-footer, .case-nav) { background: rgba(244,241,234,.45); }
+html[data-theme="light"] .galaxy-site .work {
+  --text: #111111; --muted: #686868; --line: rgba(17,17,17,.18); --surface: #fafaf7;
+  background: rgba(244,241,234,.45);
+}
+html[data-theme="light"] .galaxy-site .project-panel { background: rgba(250,250,247,.95); border-color: var(--line); }
+html[data-theme="light"] .galaxy-site .cosmic-heading { animation: none; text-shadow: none; }
+.site-galaxy { transition: opacity .6s ease; }
+@media (max-width: 767px) {
+  .galaxy-site .cosmic-heading { animation-duration: 20s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .galaxy-site .cosmic-heading { animation: none; }
+  .site-galaxy { transition: none; }
+}

@@ -30,7 +30,8 @@ const fs = require('node:fs');
     await page.waitForTimeout(4500);
     assert(await page.evaluate(() => document.fonts.check('700 100px "Space Grotesk"')));
     assert.equal(await page.locator('h1').getAttribute('aria-label'), 'Ravi Kumar Tiwari');
-    assert.equal(await page.locator('canvas').count(), 1);
+    assert.equal(await page.locator('.hero-orb-canvas').count(), 1);
+    assert.equal(await page.locator('.site-galaxy-canvas').count(), 1);
     const coverage = await page.locator('.hero-orb-canvas').boundingBox();
     assert(coverage.x <= 1 && coverage.width >= 1439, 'Canvas covers the full hero width');
     const before = await page.locator('.hero-skill').first().getAttribute('style');
@@ -129,7 +130,7 @@ const fs = require('node:fs');
     assert(fallbackRects.every(rect => rect.left >= -1 && rect.right <= 391));
     results.push('Shader failure restores the fallback; fallback labels remain visible after resize');
 
-    await reduced.evaluate(() => document.querySelector('canvas').getContext('webgl2').getExtension('WEBGL_lose_context').loseContext());
+    await reduced.evaluate(() => document.querySelector('.hero-orb-canvas').getContext('webgl2').getExtension('WEBGL_lose_context').loseContext());
     await reduced.locator('.is-webgl-fallback').waitFor();
     assert.equal(await reduced.locator('.hero-orb-fallback').evaluate(el => getComputedStyle(el).opacity), '1');
     results.push('WebGL context loss restores the static fallback');

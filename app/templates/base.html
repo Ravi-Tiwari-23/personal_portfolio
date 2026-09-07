@@ -15,14 +15,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site-galaxy.css') }}">
   {% block extra_styles %}{% endblock %}
   <title>{% block title %}{{ site.site_title }}{% endblock %}</title>
   <script src="{{ url_for('static', filename='js/vendor/gsap.min.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/vendor/ScrollTrigger.min.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/site-galaxy.js') }}" defer></script>
   {% block extra_scripts %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="galaxy-site {% block body_class %}{% endblock %}">
+  <div class="site-galaxy" aria-hidden="true"><canvas class="site-galaxy-canvas"></canvas></div>
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="page-loader" aria-hidden="true"><span>RT<span class="accent">/</span>26</span></div>
   <div class="cursor-dot cursor--on-dark" aria-hidden="true"></div>
