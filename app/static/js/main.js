@@ -5,6 +5,31 @@
   const finePointer = window.matchMedia('(pointer: fine)').matches && window.innerWidth >= 768;
   const gsap = window.gsap;
   const ScrollTrigger = window.ScrollTrigger;
+  const themeKey = 'portfolio-theme';
+
+  const setTheme = (theme, persist = true) => {
+    const nextTheme = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = nextTheme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', nextTheme === 'light' ? '#f4f1ea' : '#0b0b0b');
+    document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+      const isLight = nextTheme === 'light';
+      button.setAttribute('aria-label', `Switch to ${isLight ? 'dark' : 'light'} theme`);
+      button.setAttribute('aria-pressed', String(isLight));
+      const label = button.querySelector('[data-theme-label]');
+      if (label) label.textContent = `${isLight ? 'Light' : 'Dark'} mode active`;
+    });
+    if (persist) {
+      try { localStorage.setItem(themeKey, nextTheme); } catch (error) { /* Theme still applies for this visit. */ }
+    }
+    window.dispatchEvent(new CustomEvent('portfolio-theme-change', { detail: { theme: nextTheme } }));
+  };
+
+  setTheme(document.documentElement.dataset.theme, false);
+  document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      setTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+    });
+  });
 
   window.addEventListener('load', () => {
     window.setTimeout(() => document.body.classList.add('loaded'), reduced ? 0 : 350);
@@ -266,7 +291,10 @@
       let started = false;
 
       const setCursorTheme = (target) => {
-        const theme = target?.closest?.('[data-cursor-theme]')?.dataset.cursorTheme === 'light' ? 'light' : 'dark';
+        const sectionTheme = target?.closest?.('[data-cursor-theme]')?.dataset.cursorTheme;
+        const theme = sectionTheme === 'light' || sectionTheme === 'dark'
+          ? sectionTheme
+          : document.documentElement.dataset.theme;
         [dot, ring].forEach((part) => {
           part.classList.toggle('cursor--on-light', theme === 'light');
           part.classList.toggle('cursor--on-dark', theme === 'dark');

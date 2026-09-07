@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="{% block description %}{{ site.seo_description }}{% endblock %}">
-  <meta name="theme-color" content="#0b0c0c">
+  <meta name="theme-color" content="#0b0b0b">
+  <script src="{{ url_for('static', filename='js/theme-init.js') }}"></script>
   <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
   <meta property="og:type" content="website">
   <meta property="og:title" content="{% block og_title %}{{ site.site_title }}{% endblock %}">
@@ -29,15 +30,22 @@
 
   <header class="site-header" data-reveal>
     <a class="brand" href="{{ url_for('main.index') }}" aria-label="Ravi Kumar Tiwari, home">RAVI<span class="brand-mark">®</span></a>
-    <nav class="desktop-nav" aria-label="Primary navigation">
-      <a href="{{ url_for('main.index') }}">Home</a>
-      <a href="{{ url_for('main.about') }}">About</a>
-      <a href="{{ url_for('main.index') }}#skills">Skills</a>
-      <a href="{{ url_for('projects.index') }}">Projects</a>
-      <a href="{{ url_for('main.contact') }}">Contact</a>
-      <a class="nav-resume" href="{{ url_for('main.resume_download') }}" data-cursor="DOWNLOAD ↓">Résumé <span aria-hidden="true">↓</span></a>
-    </nav>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu"><span>Menu</span><i></i></button>
+    <div class="header-actions">
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="{{ url_for('main.index') }}">Home</a>
+        <a href="{{ url_for('main.about') }}">About</a>
+        <a href="{{ url_for('main.index') }}#skills">Skills</a>
+        <a href="{{ url_for('projects.index') }}">Projects</a>
+        <a href="{{ url_for('main.contact') }}">Contact</a>
+        <a class="nav-resume" href="{{ url_for('main.resume_download') }}" data-cursor="DOWNLOAD ↓">Résumé <span aria-hidden="true">↓</span></a>
+      </nav>
+      <button class="theme-toggle" type="button" aria-label="Switch to light theme" aria-pressed="false" data-theme-toggle>
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">☼</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+        <span class="sr-only" data-theme-label>Dark mode active</span>
+      </button>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu"><span>Menu</span><i></i></button>
+    </div>
   </header>
 
   <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
@@ -54,7 +62,7 @@
 
   <main id="main-content">{% block content %}{% endblock %}</main>
 
-  <footer class="site-footer" data-footer data-cursor-theme="light">
+  <footer class="site-footer" data-footer data-cursor-theme="theme">
     <div class="footer-name" data-footer-name>
       <p>{{ site.name }}</p>
       <span>Computer Science • Python • Data • AI • Web</span>

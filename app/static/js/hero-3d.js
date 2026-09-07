@@ -15,7 +15,7 @@ import * as THREE from './vendor/three.module.min.js';
     element,
     index,
     angle: (index / skillElements.length) * Math.PI * 2 + (index % 3) * 0.18,
-    speed: (0.00145 + (index % 5) * 0.00023) * (index % 3 === 0 ? -1 : 1),
+    speed: (0.00078 + (index % 5) * 0.00013) * (index % 3 === 0 ? -1 : 1),
     plane: (index % 4) - 1.5,
     phase: index * 1.73,
     x: 0,
@@ -40,16 +40,24 @@ import * as THREE from './vendor/three.module.min.js';
   let lastTime = 0;
   let resizeTimer = 0;
   let frameCount = 0;
+  let fieldStartedAt = performance.now();
   let renderer = null;
   let scene = null;
   let camera = null;
   let sceneGroup = null;
   let coreMesh = null;
+  let coreMaterial = null;
+  let wireMaterial = null;
   let coreGeometry = null;
   let coreBasePositions = null;
   let particleGeometry = null;
   let particleCloud = null;
+  let particleMaterial = null;
+  let particleData = [];
+  let ambientLight = null;
+  let keyLight = null;
   let warmLight = null;
+  const orbitMaterials = [];
 
   const visibleStates = () => skillStates.filter((state) => state.active);
 
@@ -76,8 +84,42 @@ import * as THREE from './vendor/three.module.min.js';
     if (renderer && camera) {
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
+      camera.position.z = window.innerWidth < 768 ? 5.4 * Math.max(1, 0.82 / camera.aspect) : 5.4;
       camera.updateProjectionMatrix();
+      if (sceneGroup) {
+        const viewHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.z;
+        const viewWidth = viewHeight * camera.aspect;
+        sceneGroup.position.x = ((centerX / width) * 2 - 1) * viewWidth * 0.5;
+      }
     }
+  };
+
+  const applyTheme = (theme = document.documentElement.dataset.theme) => {
+    if (!renderer) return;
+    const light = theme === 'light';
+    renderer.toneMappingExposure = light ? 1.18 : 1.3;
+    coreMaterial?.color.set(light ? 0x25272a : 0x38302d);
+    if (coreMaterial) {
+      coreMaterial.roughness = light ? 0.46 : 0.38;
+      coreMaterial.metalness = light ? 0.62 : 0.68;
+    }
+    if (wireMaterial) wireMaterial.opacity = light ? 0.18 : 0.24;
+    orbitMaterials.forEach((material, index) => {
+      material.color.set(index === 1 ? 0xff5c35 : light ? 0x313131 : 0xf7f4ee);
+      material.opacity = index === 1 ? (light ? 0.13 : 0.18) : (light ? 0.105 : 0.13);
+    });
+    if (particleMaterial) {
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff5c35';
+      particleMaterial.uniforms.uColor.value.set(accent);
+      particleMaterial.uniforms.uThemeOpacity.value = light ? 0.36 : 1;
+      particleMaterial.uniforms.uLightMode.value = light ? 1 : 0;
+      particleMaterial.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
+      particleMaterial.needsUpdate = true;
+    }
+    if (ambientLight) ambientLight.intensity = light ? 1.35 : 1.05;
+    if (keyLight) keyLight.intensity = light ? 4.2 : 3.5;
+    if (warmLight) warmLight.intensity = light ? 6.5 : 10;
+    renderer.render(scene, camera);
   };
 
   const buildScene = () => {
@@ -99,12 +141,11 @@ import * as THREE from './vendor/three.module.min.js';
       camera.position.set(0, 0, 5.4);
 
       sceneGroup = new THREE.Group();
-      sceneGroup.position.x = window.innerWidth < 768 ? 0.82 : 0.48;
       scene.add(sceneGroup);
 
       coreGeometry = new THREE.IcosahedronGeometry(1.02, window.innerWidth < 768 ? 2 : 3);
       coreBasePositions = Float32Array.from(coreGeometry.attributes.position.array);
-      const coreMaterial = new THREE.MeshStandardMaterial({
+      coreMaterial = new THREE.MeshStandardMaterial({
         color: 0x38302d,
         roughness: 0.38,
         metalness: 0.68,
@@ -113,7 +154,7 @@ import * as THREE from './vendor/three.module.min.js';
       coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
       sceneGroup.add(coreMesh);
 
-      const wireMaterial = new THREE.MeshBasicMaterial({
+      wireMaterial = new THREE.MeshBasicMaterial({
         color: 0xff5c35,
         transparent: true,
         opacity: 0.24,
@@ -144,35 +185,169 @@ import * as THREE from './vendor/three.module.min.js';
           ring.material.color.set(0xff5c35);
           ring.material.opacity = 0.18;
         }
+        orbitMaterials.push(ring.material);
         sceneGroup.add(ring);
       });
 
-      const particleCount = window.innerWidth < 768 ? 18 : 42;
+      // Keep the star field dense at every viewport size without creating
+      // thousands of DOM nodes (the whole field is still one GPU draw call).
+      const areaCount = Math.round((width * height) / 4000);
+      const particleCount = window.innerWidth < 768
+        ? Math.max(72, Math.min(96, areaCount))
+        : window.innerWidth < 1024
+          ? Math.max(135, Math.min(190, areaCount))
+          : Math.max(260, Math.min(340, areaCount));
       const particlePositions = new Float32Array(particleCount * 3);
+      const particleSizes = new Float32Array(particleCount);
+      const particleMinAlphas = new Float32Array(particleCount);
+      const particleMaxAlphas = new Float32Array(particleCount);
+      const particlePhases = new Float32Array(particleCount);
+      const particleTwinkleSpeeds = new Float32Array(particleCount);
+      const particleBursts = new Float32Array(particleCount);
+      const particleLightVisibility = new Float32Array(particleCount);
+      particleData = [];
       for (let index = 0; index < particleCount; index += 1) {
-        const radius = 1.4 + Math.random() * 1.25;
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        particlePositions[index * 3] = radius * Math.sin(phi) * Math.cos(theta);
-        particlePositions[index * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-        particlePositions[index * 3 + 2] = radius * Math.cos(phi);
+        const jitter = 0.035;
+        let nx = (index * 0.61803398875 + Math.random() * jitter) % 1;
+        let ny = (index * 0.75487766625 + Math.random() * jitter) % 1;
+        const nearOrb = index % 9 === 0;
+        if (nearOrb) {
+          nx = 0.54 + Math.random() * 0.4;
+          ny = 0.18 + Math.random() * 0.65;
+        }
+
+        const initiallyBehindType = nx < 0.62 && ny > 0.2 && ny < 0.72;
+        // Move only some stars away from the headline. The remainder stay
+        // faint behind the type so the complete black canvas still feels full.
+        if (initiallyBehindType && index % 4 === 0) {
+          nx = index % 2 === 0 ? 0.65 + Math.random() * 0.31 : nx;
+          ny = index % 2 === 0 ? ny : (index % 4 === 1 ? Math.random() * 0.18 : 0.75 + Math.random() * 0.21);
+        }
+
+        const layerRoll = ((index * 47) % 100) / 100;
+        const layer = layerRoll < 0.58 ? 0 : layerRoll < 0.9 ? 1 : 2;
+        const layerDepth = Math.random();
+        const z = layer === 0
+          ? -1.35 + layerDepth * 0.72
+          : layer === 1
+            ? -0.5 + layerDepth * 0.82
+            : 0.42 + layerDepth * 0.68;
+        const brightnessRoll = ((index * 37) % 100) / 100;
+        const brightness = brightnessRoll < 0.7 ? 0 : brightnessRoll < 0.9 ? 1 : 2;
+        const protectedText = nx < 0.62 && ny > 0.2 && ny < 0.72;
+        const protectedCta = nx > 0.76 && ny > 0.7;
+        const protectedScrollLabel = nx < 0.1 && ny > 0.55;
+        const protectedNav = ny < 0.1;
+        const quietZone = protectedText || protectedCta || protectedScrollLabel || protectedNav;
+        const quietMultiplier = quietZone ? 0.44 : nearOrb ? 1.1 : 1;
+        const sizeRanges = [[1.8, 2.8], [2.8, 4.2], [4.2, 6.4]];
+        const alphaRanges = [[0.24, 0.36, 0.56, 0.76], [0.34, 0.48, 0.7, 0.92], [0.48, 0.64, 0.92, 1]];
+        const sizeRange = sizeRanges[layer];
+        const alphaRange = alphaRanges[brightness];
+        const duration = 2.5 + Math.random() * 4.5;
+        particleSizes[index] = (sizeRange[0] + Math.random() * (sizeRange[1] - sizeRange[0])) * (window.innerWidth < 768 ? 0.86 : 1);
+        particleMinAlphas[index] = (alphaRange[0] + Math.random() * (alphaRange[1] - alphaRange[0])) * quietMultiplier;
+        particleMaxAlphas[index] = (alphaRange[2] + Math.random() * (alphaRange[3] - alphaRange[2])) * quietMultiplier;
+        particlePhases[index] = Math.random() * Math.PI * 2;
+        particleTwinkleSpeeds[index] = (Math.PI * 2) / duration;
+        particleBursts[index] = brightness === 2 && index % 2 === 0 ? 1 : 0;
+        particleLightVisibility[index] = index % 10 < 7 ? 1 : 0;
+        particleData.push({
+          nx,
+          ny,
+          z,
+          layer,
+          nearOrb,
+          phase: particlePhases[index],
+          driftX: 0.008 + layer * 0.008 + Math.random() * 0.012,
+          driftY: 0.009 + layer * 0.009 + Math.random() * 0.013,
+        });
       }
       particleGeometry = new THREE.BufferGeometry();
       particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+      particleGeometry.setAttribute('aSize', new THREE.BufferAttribute(particleSizes, 1));
+      particleGeometry.setAttribute('aMinAlpha', new THREE.BufferAttribute(particleMinAlphas, 1));
+      particleGeometry.setAttribute('aMaxAlpha', new THREE.BufferAttribute(particleMaxAlphas, 1));
+      particleGeometry.setAttribute('aPhase', new THREE.BufferAttribute(particlePhases, 1));
+      particleGeometry.setAttribute('aTwinkleSpeed', new THREE.BufferAttribute(particleTwinkleSpeeds, 1));
+      particleGeometry.setAttribute('aBurst', new THREE.BufferAttribute(particleBursts, 1));
+      particleGeometry.setAttribute('aLightVisibility', new THREE.BufferAttribute(particleLightVisibility, 1));
+      particleMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          uColor: { value: new THREE.Color(0xff5c35) },
+          uThemeOpacity: { value: 1 },
+          uScrollFade: { value: 1 },
+          uIntroFade: { value: reduced ? 1 : 0.1 },
+          uLightMode: { value: 0 },
+          uTime: { value: 0 },
+          uMotion: { value: reduced ? 0 : 1 },
+          uPixelRatio: { value: Math.min(window.devicePixelRatio || 1, 2) },
+        },
+        vertexShader: `
+          attribute float aSize;
+          attribute float aMinAlpha;
+          attribute float aMaxAlpha;
+          attribute float aPhase;
+          attribute float aTwinkleSpeed;
+          attribute float aBurst;
+          attribute float aLightVisibility;
+          uniform float uTime;
+          uniform float uMotion;
+          uniform float uPixelRatio;
+          uniform float uLightMode;
+          uniform float uThemeOpacity;
+          uniform float uScrollFade;
+          uniform float uIntroFade;
+          varying float vAlpha;
+          varying float vBurst;
+          void main() {
+            float primaryWave = 0.5 + 0.5 * sin(uTime * aTwinkleSpeed + aPhase);
+            float shimmerWave = 0.5 + 0.5 * sin(uTime * aTwinkleSpeed * 0.43 + aPhase * 1.71);
+            float animatedTwinkle = smoothstep(0.06, 0.94, primaryWave) * mix(0.72, 1.0, shimmerWave);
+            float twinkle = mix(0.38, animatedTwinkle, uMotion);
+            float twinkleScale = mix(0.78, 1.28, twinkle);
+            float themeVisibility = mix(1.0, aLightVisibility, uLightMode);
+            vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_Position = projectionMatrix * viewPosition;
+            gl_PointSize = aSize * uPixelRatio * 2.05 * twinkleScale * (5.0 / max(1.0, -viewPosition.z));
+            vAlpha = mix(aMinAlpha, aMaxAlpha, twinkle) * themeVisibility * uThemeOpacity * uScrollFade * uIntroFade;
+            vBurst = aBurst;
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 uColor;
+          varying float vAlpha;
+          varying float vBurst;
+          void main() {
+            vec2 point = gl_PointCoord - vec2(0.5);
+            float radius = length(point);
+            float core = 1.0 - smoothstep(0.08, 0.42, radius);
+            float glow = 1.0 - smoothstep(0.18, 0.5, radius);
+            float horizontal = (1.0 - smoothstep(0.0, 0.065, abs(point.y))) * (1.0 - smoothstep(0.14, 0.5, abs(point.x)));
+            float vertical = (1.0 - smoothstep(0.0, 0.065, abs(point.x))) * (1.0 - smoothstep(0.14, 0.5, abs(point.y)));
+            float starburst = max(horizontal, vertical) * vBurst * 0.28;
+            float shape = max(core, glow * 0.28 + starburst);
+            if (shape <= 0.01) discard;
+            gl_FragColor = vec4(uColor, vAlpha * shape);
+          }
+        `,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+        toneMapped: false,
+        blending: THREE.AdditiveBlending,
+      });
       particleCloud = new THREE.Points(
         particleGeometry,
-        new THREE.PointsMaterial({
-          color: 0xff7657,
-          size: window.innerWidth < 768 ? 0.018 : 0.025,
-          transparent: true,
-          opacity: 0.68,
-          depthWrite: false,
-        }),
+        particleMaterial,
       );
-      sceneGroup.add(particleCloud);
+      particleCloud.frustumCulled = false;
+      scene.add(particleCloud);
+      fieldStartedAt = performance.now();
 
-      scene.add(new THREE.AmbientLight(0xf5f3ed, 1.05));
-      const keyLight = new THREE.DirectionalLight(0xfff4ed, 3.5);
+      ambientLight = new THREE.AmbientLight(0xf5f3ed, 1.05);
+      scene.add(ambientLight);
+      keyLight = new THREE.DirectionalLight(0xfff4ed, 3.5);
       keyLight.position.set(-2.3, 2.4, 3.8);
       scene.add(keyLight);
       warmLight = new THREE.PointLight(0xff5c35, 10, 8, 1.6);
@@ -180,7 +355,8 @@ import * as THREE from './vendor/three.module.min.js';
       scene.add(warmLight);
 
       measure(true);
-      renderer.render(scene, camera);
+      applyTheme();
+      updateScene(0, 1);
       universe.classList.add('is-webgl-ready');
     } catch {
       universe.classList.add('is-webgl-fallback');
@@ -218,18 +394,18 @@ import * as THREE from './vendor/three.module.min.js';
   const updateSkills = (frameScale, elapsed) => {
     const states = visibleStates();
     const mobile = window.innerWidth < 768;
-    const speedBoost = 1 + scrollProgress * (mobile ? 0.35 : 1.6);
-    const expansion = 1 + scrollProgress * 0.1;
+    const speedBoost = 1 + scrollProgress * (mobile ? 0.06 : 0.18);
+    const expansion = 1 + scrollProgress * 0.045;
 
     states.forEach((state) => {
-      const hoverSpeed = state.hovered ? 0.1 : 1;
+      const hoverSpeed = state.hovered ? 0.035 : 1;
       state.angle += state.speed * frameScale * 16.67 * speedBoost * hoverSpeed;
       const rx = width * (mobile ? 0.265 + (state.index % 4) * 0.017 : 0.215 + (state.index % 4) * 0.015) * expansion;
       const ry = height * (0.235 + (state.index % 3) * 0.022) * expansion;
-      const orbitWarp = Math.sin(state.angle * 1.8 + state.phase) * (mobile ? 4 : 11);
+      const orbitWarp = Math.sin(state.angle * 1.8 + state.phase) * (mobile ? 2.5 : 6);
       const targetX = centerX + Math.cos(state.angle) * rx;
       const targetY = centerY + Math.sin(state.angle + state.plane * 0.08) * ry + orbitWarp;
-      const spring = mobile ? 0.028 : 0.018;
+      const spring = mobile ? 0.014 : 0.011;
       state.vx += (targetX - state.x) * spring * frameScale;
       state.vy += (targetY - state.y) * spring * frameScale;
 
@@ -239,13 +415,13 @@ import * as THREE from './vendor/three.module.min.js';
         const distance = Math.hypot(dx, dy) || 1;
         const reach = state.hovered ? 72 : 112;
         if (distance < reach) {
-          const force = (reach - distance) * (state.hovered ? 0.001 : 0.006);
+          const force = (reach - distance) * (state.hovered ? 0.0007 : 0.0025);
           state.vx += (dx / distance) * force * frameScale;
           state.vy += (dy / distance) * force * frameScale;
         }
       }
-      state.vx *= Math.pow(0.91, frameScale);
-      state.vy *= Math.pow(0.91, frameScale);
+      state.vx *= Math.pow(0.875, frameScale);
+      state.vy *= Math.pow(0.875, frameScale);
     });
 
     if (!mobile) {
@@ -258,7 +434,8 @@ import * as THREE from './vendor/three.module.min.js';
           const distance = Math.hypot(dx, dy) || 1;
           const minimum = (a.width + b.width) * 0.48 + 12;
           if (distance < minimum) {
-            const force = (minimum - distance) * 0.006;
+            const hoverFactor = a.hovered || b.hovered ? 0.005 : 0.003;
+            const force = (minimum - distance) * hoverFactor;
             const nx = dx / distance;
             const ny = dy / distance;
             a.vx -= nx * force;
@@ -277,8 +454,8 @@ import * as THREE from './vendor/three.module.min.js';
       const protectedTop = mobile ? state.height * 0.7 + 6 : Math.max(state.height * 0.7 + 6, height * 0.085);
       const safeX = Math.max(protectedLeft, Math.min(width - state.width * 0.52 - 6, state.x));
       const safeY = Math.max(protectedTop, Math.min(height - state.height * 0.7 - 6, state.y));
-      if (safeX !== state.x) state.vx *= -0.42;
-      if (safeY !== state.y) state.vy *= -0.42;
+      if (safeX !== state.x) state.vx *= -0.16;
+      if (safeY !== state.y) state.vy *= -0.16;
       state.x = safeX;
       state.y = safeY;
       const z = Math.sin(state.angle * 1.12 + state.phase * 0.37);
@@ -294,15 +471,41 @@ import * as THREE from './vendor/three.module.min.js';
     scrollProgress += (targetScrollProgress - scrollProgress) * 0.07 * frameScale;
 
     const seconds = elapsed * 0.001;
-    sceneGroup.rotation.y = seconds * 0.075 + pointerEase.x * 0.18 + scrollProgress * 0.72;
-    sceneGroup.rotation.x = Math.sin(seconds * 0.21) * 0.055 - pointerEase.y * 0.11 + scrollProgress * 0.12;
-    sceneGroup.rotation.z = Math.sin(seconds * 0.13) * 0.025;
-    sceneGroup.scale.setScalar(1 + scrollProgress * 0.075);
-    coreMesh.rotation.y += 0.0015 * frameScale;
-    coreMesh.rotation.x += 0.00045 * frameScale;
-    coreMesh.position.y = Math.sin(seconds * 0.62) * 0.045;
-    particleCloud.rotation.y -= 0.0007 * frameScale;
-    particleCloud.rotation.z += 0.00035 * frameScale;
+    sceneGroup.rotation.y = seconds * 0.04 + pointerEase.x * 0.12 + scrollProgress * 0.22;
+    sceneGroup.rotation.x = Math.sin(seconds * 0.16) * 0.04 - pointerEase.y * 0.075 + scrollProgress * 0.055;
+    sceneGroup.rotation.z = Math.sin(seconds * 0.1) * 0.018;
+    const baseOrbScale = window.innerWidth < 768 ? 0.62 : 0.75;
+    sceneGroup.scale.setScalar(baseOrbScale + scrollProgress * 0.03);
+    coreMesh.rotation.y += 0.00082 * frameScale;
+    coreMesh.rotation.x += 0.00024 * frameScale;
+    coreMesh.position.y = Math.sin(seconds * 0.42) * 0.035;
+
+    if (particleCloud && particleGeometry && particleData.length) {
+      const position = particleGeometry.attributes.position;
+      const perspective = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+      const fieldSeconds = Math.max(0, (elapsed - fieldStartedAt) * 0.001);
+      particleData.forEach((particle, index) => {
+        const distance = camera.position.z - particle.z;
+        const viewHeight = 2 * perspective * distance;
+        const viewWidth = viewHeight * camera.aspect;
+        const expansion = 1 + scrollProgress * (0.018 + particle.layer * 0.014);
+        const pointerRange = finePointer ? 0.006 + particle.layer * 0.012 : 0;
+        const movement = reduced ? 0 : 1;
+        const driftX = Math.sin(seconds * (0.07 + particle.layer * 0.035) + particle.phase) * particle.driftX * movement;
+        const driftY = Math.cos(seconds * (0.058 + particle.layer * 0.031) + particle.phase) * particle.driftY * movement;
+        const orbitalX = particle.nearOrb ? Math.sin(seconds * 0.095 + particle.phase) * 0.018 * movement : 0;
+        const orbitalY = particle.nearOrb ? Math.cos(seconds * 0.078 + particle.phase) * 0.014 * movement : 0;
+        const scrollLift = scrollProgress * (0.035 + particle.layer * 0.045);
+        const offset = index * 3;
+        position.array[offset] = ((particle.nx - 0.5) * viewWidth + driftX + orbitalX + pointerEase.x * pointerRange) * expansion;
+        position.array[offset + 1] = ((0.5 - particle.ny) * viewHeight + driftY + orbitalY - pointerEase.y * pointerRange + scrollLift) * expansion;
+        position.array[offset + 2] = particle.z;
+      });
+      position.needsUpdate = true;
+      particleMaterial.uniforms.uTime.value = fieldSeconds;
+      particleMaterial.uniforms.uIntroFade.value = reduced ? 1 : 0.1 + Math.min(1, fieldSeconds / 1.8) * 0.9;
+      particleMaterial.uniforms.uScrollFade.value = Math.max(0.04, 1 - scrollProgress * 0.96);
+    }
     warmLight.position.x = 2.1 + pointerEase.x * 0.7;
     warmLight.position.y = -1.1 - pointerEase.y * 0.5;
 
@@ -380,6 +583,9 @@ import * as THREE from './vendor/three.module.min.js';
 
   window.addEventListener('hero-universe-progress', (event) => {
     targetScrollProgress = Math.max(0, Math.min(1, Number(event.detail?.progress) || 0));
+  });
+  window.addEventListener('portfolio-theme-change', (event) => {
+    applyTheme(event.detail?.theme);
   });
   window.addEventListener('resize', () => {
     window.clearTimeout(resizeTimer);

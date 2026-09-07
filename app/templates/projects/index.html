@@ -2,12 +2,12 @@
 {% block title %}Work — {{ site.name }}{% endblock %}
 {% block description %}Selected software, data, automation, and product engineering work by {{ site.name }}.{% endblock %}
 {% block content %}
-<section class="page-hero work-hero container" data-cursor-theme="dark">
+<section class="page-hero work-hero container" data-cursor-theme="theme">
   <p class="eyebrow" data-reveal>01 / WORK</p>
   <h1 data-reveal>Selected<br><span class="outline">projects.</span></h1>
   <div class="page-hero-foot" data-reveal><p>From first question to working system.</p><p>{{ projects|length }} published case {{ 'study' if projects|length == 1 else 'studies' }}</p></div>
 </section>
-<section class="all-work container section-pad" data-cursor-theme="dark">
+<section class="all-work container section-pad" data-cursor-theme="theme">
   {% if categories %}<div class="filters" role="group" aria-label="Filter projects"><button class="active" data-filter="all">All</button>{% for category in categories %}<button data-filter="{{ category|lower }}">{{ category }}</button>{% endfor %}</div>{% endif %}
   <div class="project-list" id="project-list">
     {% for project in projects %}{% include "_project_row.html" %}{% else %}<div class="empty-state"><h2>No published projects yet.</h2><p>New work will appear here soon.</p></div>{% endfor %}

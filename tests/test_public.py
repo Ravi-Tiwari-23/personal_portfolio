@@ -45,3 +45,14 @@ def test_public_identity_contact_and_footer(client):
     assert 'data-footer' in combined
     assert "Back to top" in combined
     assert "tel:" not in combined
+
+
+def test_home_exposes_persistent_accessible_theme_controls(client):
+    response = client.get("/")
+    markup = response.data.decode()
+    assert response.status_code == 200
+    assert '<html lang="en" data-theme="dark">' in markup
+    assert 'js/theme-init.js' in markup
+    assert 'data-theme-toggle' in markup
+    assert 'aria-label="Switch to light theme"' in markup
+    assert 'data-cursor-theme="theme"' in markup
