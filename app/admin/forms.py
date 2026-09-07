@@ -1,7 +1,14 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField, FileRequired, MultipleFileField
 from wtforms import BooleanField, IntegerField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Length, NumberRange, Optional, URL
+from wtforms.validators import DataRequired, Length, NumberRange, Optional, URL, ValidationError
+
+from app.project_urls import normalize_project_url, safe_project_url
+
+
+def project_web_link(form, field):
+    if not safe_project_url(field.data):
+        raise ValidationError("Enter a valid HTTP or HTTPS website link without spaces or login credentials.")
 
 
 class ProjectForm(FlaskForm):
@@ -19,8 +26,8 @@ class ProjectForm(FlaskForm):
     architecture = TextAreaField("Architecture")
     development_process = TextAreaField("Development process")
     results = TextAreaField("Results")
-    github_url = StringField("GitHub URL", validators=[Optional(), URL(), Length(max=500)])
-    live_url = StringField("Live URL", validators=[Optional(), URL(), Length(max=500)])
+    github_url = StringField("GitHub URL", filters=[normalize_project_url], validators=[Optional(), URL(), project_web_link, Length(max=500)])
+    live_url = StringField("Live website URL", filters=[normalize_project_url], validators=[Optional(), URL(), project_web_link, Length(max=500)])
     thumbnail = FileField("Thumbnail", validators=[FileAllowed(["jpg", "jpeg", "png", "webp"], "Upload a JPEG, PNG, or WebP image.")])
     gallery = MultipleFileField("Gallery images", validators=[FileAllowed(["jpg", "jpeg", "png", "webp"], "Upload JPEG, PNG, or WebP images.")])
     featured = BooleanField("Featured")

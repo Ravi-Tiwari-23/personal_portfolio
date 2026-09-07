@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from flask_login import UserMixin
 
 from .extensions import db, login_manager
+from .project_urls import safe_project_url
 
 
 project_technologies = db.Table(
@@ -61,6 +62,18 @@ class Project(db.Model):
     updated_at = db.Column(db.DateTime, default=utcnow, onupdate=utcnow, nullable=False)
     technologies = db.relationship("Technology", secondary=project_technologies, back_populates="projects")
     images = db.relationship("ProjectImage", backref="project", cascade="all, delete-orphan", order_by="ProjectImage.display_order")
+
+    @property
+    def safe_live_url(self):
+        return safe_project_url(self.live_url)
+
+    @property
+    def safe_github_url(self):
+        return safe_project_url(self.github_url)
+
+    @property
+    def destination_url(self):
+        return self.safe_live_url or self.safe_github_url
 
     @property
     def feature_list(self):

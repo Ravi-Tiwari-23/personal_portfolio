@@ -60,7 +60,7 @@ const path = require('node:path');
     passed.push('About, Projects and Contact share the galaxy; forms and theme toggle remain usable');
 
     await visit('/projects');
-    const link = await page.locator('.project-row > a').first().getAttribute('href');
+    const link = await page.locator('.project-row .project-action-detail').first().getAttribute('href');
     await visit(link); await page.screenshot({path:path.join(output,'project-detail.png')});
     passed.push('Project case-study page includes the shared background');
     await page.setViewportSize({width:390,height:844});

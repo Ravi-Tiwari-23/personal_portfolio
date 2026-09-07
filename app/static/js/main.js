@@ -3,7 +3,7 @@
 
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   let reduced = motionQuery.matches;
-  const finePointer = window.matchMedia('(pointer: fine)').matches && window.innerWidth >= 768;
+  const cursorQuery = window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 768px)');
   const gsap = window.gsap;
   const ScrollTrigger = window.ScrollTrigger;
   const themeKey = 'portfolio-theme';
@@ -191,15 +191,7 @@
           onEnter: () => { if (current) current.textContent = String(index + 1).padStart(2, '0'); },
           onEnterBack: () => { if (current) current.textContent = String(index + 1).padStart(2, '0'); },
         });
-        if (panels[index + 1]) {
-          gsap.to(panel, {
-            scale: 0.96,
-            y: -14,
-            opacity: 0.62,
-            ease: 'none',
-            scrollTrigger: { trigger: panels[index + 1], start: 'top 94%', end: 'top 8%', scrub: 1 },
-          });
-        }
+        // Keep every card fully readable; no overlapping or dimmed stack.
       });
 
       gsap.from('.home-contact h2 .line-mask > span', {
@@ -278,9 +270,11 @@
   const filters = document.querySelectorAll('[data-filter]');
   const projects = document.querySelectorAll('.project-row[data-category]');
   filters.forEach((filter) => filter.addEventListener('click', () => {
-    filters.forEach((item) => item.classList.remove('active'));
+    filters.forEach((item) => { item.classList.remove('active'); item.setAttribute('aria-pressed', 'false'); });
     filter.classList.add('active');
+    filter.setAttribute('aria-pressed', 'true');
     projects.forEach((project) => project.classList.toggle('hidden', filter.dataset.filter !== 'all' && project.dataset.category !== filter.dataset.filter));
+    ScrollTrigger?.refresh();
   }));
 
   const time = document.querySelector('#local-time');
@@ -291,14 +285,30 @@
   updateTime();
   if (time) window.setInterval(updateTime, 30000);
 
-  if (finePointer && !reduced) {
+  {
     const dot = document.querySelector('.cursor-dot');
     const ring = document.querySelector('.cursor-ring');
     const label = ring?.querySelector('.cursor-label');
+    const orbit = ring?.querySelector('.cursor-orbit');
     if (dot && ring && label) {
       let mouseX = -100;
       let mouseY = -100;
-      let started = false;
+      const hideCursor = () => {
+        document.body.classList.remove('cursor-ready', 'cursor-pressed');
+        gsap?.killTweensOf([ring, orbit].filter(Boolean));
+        [dot, ring].forEach((part) => part.classList.remove('cursor--interactive', 'cursor--skill'));
+        label.textContent = '';
+      };
+      const canAnimate = () => cursorQuery.matches && !reduced && !document.hidden;
+      cursorQuery.addEventListener('change', hideCursor);
+      motionQuery.addEventListener('change', hideCursor);
+      window.addEventListener('blur', hideCursor);
+      document.addEventListener('visibilitychange', hideCursor);
+      document.addEventListener('pointerout', (event) => { if (!event.relatedTarget) hideCursor(); });
+      document.addEventListener('keydown', (event) => { if (event.key === 'Tab') hideCursor(); });
+      document.addEventListener('pointerdown', () => { if (canAnimate()) document.body.classList.add('cursor-pressed'); });
+      document.addEventListener('pointerup', () => document.body.classList.remove('cursor-pressed'));
+      document.addEventListener('pointercancel', hideCursor);
 
       const setCursorTheme = (target) => {
         const sectionTheme = target?.closest?.('[data-cursor-theme]')?.dataset.cursorTheme;
@@ -312,23 +322,27 @@
       };
 
       document.addEventListener('pointermove', (event) => {
-        if (reduced) return;
+        if (!canAnimate() || event.pointerType === 'touch' || event.target.closest?.('input, textarea, select, [contenteditable="true"]')) {
+          hideCursor();
+          return;
+        }
+        const dx = Math.max(-18, Math.min(18, event.clientX - mouseX));
+        const dy = Math.max(-18, Math.min(18, event.clientY - mouseY));
         mouseX = event.clientX;
         mouseY = event.clientY;
         setCursorTheme(event.target);
-        if (!started) {
-          started = true;
-          document.body.classList.add('cursor-ready');
-        }
-      }, { passive: true });
-
-      // Reuse GSAP's existing ticker for cursor easing instead of another RAF loop.
-      document.addEventListener('pointermove', () => {
-        if (reduced) return;
+        const entering = !document.body.classList.contains('cursor-ready');
         document.body.classList.add('cursor-ready');
         dot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-        if (gsap) gsap.to(ring, { x: mouseX, y: mouseY, duration: 0.22, ease: 'power2.out', overwrite: true });
+        // A precise dot plus a trailing, velocity-tilted 3D orbit; reuse GSAP.
+        if (gsap) {
+          gsap.to(ring, { x: mouseX, y: mouseY, duration: entering ? 0 : 0.16, ease: 'power2.out', overwrite: true });
+          if (orbit) gsap.to(orbit, { rotationX: -dy, rotationY: dx, duration: .35, overwrite: true });
+        }
         else ring.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+        const interactive = event.target.closest?.('a, button, [data-cursor]');
+        [dot, ring].forEach((part) => part.classList.toggle('cursor--interactive', Boolean(interactive)));
+        label.textContent = interactive?.dataset.cursor || '';
       }, { passive: true });
 
       document.querySelectorAll('a, button, [data-cursor]').forEach((item) => {
@@ -357,7 +371,7 @@
 
       document.querySelectorAll('[data-magnetic]').forEach((item) => {
         item.addEventListener('pointermove', (event) => {
-          if (reduced) return;
+          if (!canAnimate()) return;
           const box = item.getBoundingClientRect();
           const x = (event.clientX - box.left - box.width / 2) * 0.1;
           const y = (event.clientY - box.top - box.height / 2) * 0.1;

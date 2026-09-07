@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/site-galaxy.css') }}">
   {% block extra_styles %}{% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/portfolio-polish.css') }}">
   <title>{% block title %}{{ site.site_title }}{% endblock %}</title>
   <script src="{{ url_for('static', filename='js/vendor/gsap.min.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/vendor/ScrollTrigger.min.js') }}" defer></script>
@@ -29,7 +30,7 @@
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="page-loader" aria-hidden="true"><span>RT<span class="accent">/</span>26</span></div>
   <div class="cursor-dot cursor--on-dark" aria-hidden="true"></div>
-  <div class="cursor-ring cursor--on-dark" aria-hidden="true"><span class="cursor-label"></span></div>
+  <div class="cursor-ring cursor--on-dark" aria-hidden="true"><span class="cursor-orbit"><i></i><i></i><b></b></span><span class="cursor-label"></span></div>
   <div class="transition-panel" aria-hidden="true"></div>
 
   <header class="site-header" data-reveal>

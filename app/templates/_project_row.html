@@ -1,15 +1,19 @@
 <article class="project-row project-panel" data-category="{{ project.category|lower }}">
-  <a href="{{ url_for('projects.detail', slug=project.slug) }}" data-cursor="VIEW ↗" aria-label="View {{ project.title }} case study">
+  <div class="project-card-body">
     <div class="project-index">{{ '%02d'|format(loop.index if loop is defined else project.display_order) }}</div>
     <div class="project-copy">
       <div class="project-meta"><span>{{ project.category }}</span><span>{{ project.year }}</span></div>
-      <h3 class="line-mask"><span>{{ project.title }}</span></h3>
+      <h3><a href="{{ project.destination_url or url_for('projects.detail', slug=project.slug) }}" {% if project.destination_url %}target="_blank" rel="noopener noreferrer"{% endif %} data-cursor="OPEN ↗" aria-label="{{ project.title }}{% if project.destination_url %}, opens in a new tab{% else %} case study{% endif %}">{{ project.title }}</a></h3>
       <p>{{ project.short_description }}</p>
       <ul aria-label="Technologies">
         {% for technology in project.technologies[:4] %}<li>{{ technology.name }}</li>{% endfor %}
       </ul>
+      <div class="project-actions">
+        {% include "_project_links.html" %}
+        <a class="project-action project-action-detail" href="{{ url_for('projects.detail', slug=project.slug) }}" aria-label="Read {{ project.title }} case study" data-cursor="READ ↗">Case study <span aria-hidden="true">→</span></a>
+      </div>
     </div>
-    <div class="project-visual visual-{{ project.id % 3 }}">
+    <a class="project-visual visual-{{ project.id % 3 }}" href="{{ project.destination_url or url_for('projects.detail', slug=project.slug) }}" {% if project.destination_url %}target="_blank" rel="noopener noreferrer"{% endif %} aria-label="Explore {{ project.title }}{% if project.destination_url %}, opens in a new tab{% endif %}" data-cursor="OPEN ↗">
       {% if project.thumbnail %}
         {% if project.thumbnail.startswith('static:') %}
           <img src="{{ url_for('static', filename=project.thumbnail[7:]) }}" alt="Abstract system artwork for {{ project.title }}" loading="lazy" width="1200" height="800">
@@ -19,8 +23,6 @@
       {% else %}
         <div class="visual-fallback" aria-hidden="true"><b>{{ project.title[0] }}</b><span>{{ project.category }}</span><i></i><i></i></div>
       {% endif %}
-    </div>
-    <span class="project-cta" aria-hidden="true">View project ↗</span>
-    <span class="project-arrow" aria-hidden="true">↗</span>
-  </a>
+    </a>
+  </div>
 </article>
