@@ -1,0 +1,6 @@
+{% extends "admin/base.html" %}
+{% block title %}Delete skill{% endblock %}
+{% block content %}
+<header class="admin-page-head"><div><a class="admin-back" href="{{ url_for('admin.skills') }}">← Back to skills</a><h1>Delete {{ skill.name }}?</h1><p>This removes this skill permanently. Your projects and their technology tags will not change.</p></div></header>
+<section class="panel message-detail"><p>You can hide this skill instead if you may want to use it again.</p><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="confirm" value="delete"><div class="head-actions"><a class="admin-button" href="{{ url_for('admin.skills') }}">Cancel</a><button class="admin-button danger" type="submit">Delete skill permanently</button></div></form></section>
+{% endblock %}

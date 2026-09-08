@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from werkzeug.utils import safe_join
 
 from app.extensions import db, limiter
-from app.models import ContactMessage, Experience, Project, SiteSetting, Technology
+from app.models import ContactMessage, Experience, Project, SiteSetting, Technology, Skill
 
 from . import bp
 from .forms import ContactForm
@@ -15,11 +15,8 @@ from .forms import ContactForm
 def index():
     projects = Project.query.filter_by(published=True, featured=True).order_by(Project.display_order, Project.created_at.desc()).limit(5).all()
     experiences = Experience.query.order_by(Experience.display_order, Experience.id).all()
-    technologies = Technology.query.filter(Technology.projects.any()).order_by(Technology.category, Technology.name).all()
-    grouped = {}
-    for technology in technologies:
-        grouped.setdefault(technology.category, []).append(technology)
-    return render_template("index.html", projects=projects, experiences=experiences, technology_groups=grouped)
+    skills = Skill.query.filter_by(is_active=True).order_by(Skill.display_order, Skill.id).all()
+    return render_template("index.html", projects=projects, experiences=experiences, skills=skills)
 
 
 @bp.get("/about")

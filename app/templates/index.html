@@ -4,8 +4,9 @@
 {% block extra_styles %}
 <link rel="preload" href="{{ url_for('static', filename='fonts/SpaceGrotesk.ttf') }}" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hero-galaxy.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/skills.css') }}">
 {% endblock %}
-{% block extra_scripts %}<script type="module" src="{{ url_for('static', filename='js/hero-3d.js') }}"></script>{% endblock %}
+{% block extra_scripts %}<script type="module" src="{{ url_for('static', filename='js/hero-3d.js') }}"></script><script src="{{ url_for('static', filename='js/skills.js') }}" defer></script>{% endblock %}
 {% block content %}
 <section class="hero" id="home" data-cursor-theme="theme">
   <div class="hero-inner container">
@@ -65,28 +66,7 @@
   </div>
 </section>
 
-<section class="capabilities section-pad" id="skills" data-cursor-theme="light">
-  <div class="container">
-    <header class="editorial-heading">
-      <p class="section-number">02 / SKILLS</p>
-      <h2 class="chapter-heading"><span class="line-mask"><span>SKILLS</span></span></h2>
-    </header>
-    <div class="skill-list">
-      {% set counter = namespace(value=0) %}
-      {% for category, technologies in technology_groups.items() %}
-        {% for technology in technologies %}
-        {% set counter.value = counter.value + 1 %}
-        <article class="skill-row">
-          <span class="skill-index">{{ '%02d'|format(counter.value) }}</span>
-          <h3>{{ technology.name }}</h3>
-          <p>{{ category }}</p>
-          <span class="skill-arrow" aria-hidden="true">↗</span>
-        </article>
-        {% endfor %}
-      {% endfor %}
-    </div>
-  </div>
-</section>
+{% include "_skills.html" %}
 
 <section class="experience section-pad" id="exposure" data-cursor-theme="light">
   <div class="container experience-layout">

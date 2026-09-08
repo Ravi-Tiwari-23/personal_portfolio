@@ -1,9 +1,27 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField, FileRequired, MultipleFileField
-from wtforms import BooleanField, IntegerField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Length, NumberRange, Optional, URL, ValidationError
+from wtforms import BooleanField, IntegerField, StringField, SubmitField, TextAreaField, SelectField
+from wtforms.validators import DataRequired, Length, NumberRange, Optional, URL, ValidationError, Regexp
 
 from app.project_urls import normalize_project_url, safe_project_url
+from app.skill_catalog import SKILL_ICONS
+
+
+def trim_value(value):
+    return value.strip() if isinstance(value, str) else value
+
+
+class SkillForm(FlaskForm):
+    name = StringField("Skill name", filters=[trim_value], validators=[DataRequired(), Length(max=100)])
+    category = StringField("Category", filters=[trim_value], validators=[DataRequired(), Length(max=100)])
+    description = TextAreaField("Short description", filters=[trim_value], validators=[Optional(), Length(max=360)])
+    icon_type = SelectField("Icon style", choices=[("builtin", "Technology logo"), ("emoji", "Emoji fallback"), ("initials", "Name initials")], default="builtin")
+    icon = SelectField("Technology icon", choices=[("", "No logo — use fallback")] + [(key, "IBM SPSS" if key == "spss" else key.title()) for key in SKILL_ICONS], default="")
+    emoji = StringField("Optional emoji / fallback", filters=[trim_value], validators=[Optional(), Length(max=32)])
+    accent_color = StringField("Accent color", filters=[trim_value], validators=[DataRequired(), Regexp(r"^#[0-9a-fA-F]{6}$", message="Use a six-digit hex color, such as #44B78B.")], default="#FF7657")
+    display_order = IntegerField("Display order", validators=[NumberRange(min=0, max=9999)], default=0)
+    is_active = BooleanField("Active", default=True)
+    submit = SubmitField("Save skill")
 
 
 def project_web_link(form, field):

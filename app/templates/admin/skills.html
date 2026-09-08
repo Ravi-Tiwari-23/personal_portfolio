@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% block title %}Skills{% endblock %}
+{% block content %}
+<header class="admin-page-head"><div><p class="admin-kicker">CONTENT</p><h1>Skills</h1><p>Manage the skills on your homepage. Lower order numbers appear first.</p></div><a class="admin-button primary" href="{{ url_for('admin.skill_edit') }}">+ Add skill</a></header>
+{% if skills %}
+<form id="skill-order-form" method="post" action="{{ url_for('admin.skill_reorder') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="skill-admin-order"><p>Set the order below, then save. Skills with the same number keep their creation order.</p><button type="submit" class="admin-button primary">Save order</button></div></form>
+<section class="panel table-panel"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Skill</th><th>Category</th><th>Status</th><th>Order</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>
+{% for skill in skills %}<tr>
+  <td><a class="skill-admin-name" href="{{ url_for('admin.skill_edit', skill_id=skill.id) }}"><span class="skill-admin-mark" style="--skill-accent: {{ skill.safe_accent }}">{{ skill.fallback_mark }}</span><span><strong>{{ skill.name }}</strong><small>{{ skill.slug }}</small></span></a></td>
+  <td>{{ skill.category }}</td><td><span class="status {{ 'published' if skill.is_active else 'draft' }}">{{ 'Active' if skill.is_active else 'Hidden' }}</span></td>
+  <td><label class="sr-only" for="order-{{ skill.id }}">Order for {{ skill.name }}</label><input class="skill-order-input" id="order-{{ skill.id }}" name="order_{{ skill.id }}" form="skill-order-form" type="number" min="0" max="9999" value="{{ skill.display_order }}" required></td>
+  <td><div class="row-actions"><a href="{{ url_for('admin.skill_edit', skill_id=skill.id) }}">Edit</a><form method="post" action="{{ url_for('admin.skill_toggle', skill_id=skill.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">{{ 'Hide' if skill.is_active else 'Show' }}</button></form><a class="danger" href="{{ url_for('admin.skill_delete', skill_id=skill.id) }}">Delete</a></div></td>
+</tr>{% endfor %}
+</tbody></table></div></section>
+{% else %}<section class="panel panel-empty roomy"><h2>No skills yet.</h2><p>Add a skill to build your public list.</p><a class="admin-button primary" href="{{ url_for('admin.skill_edit') }}">+ Add skill</a></section>{% endif %}
+{% endblock %}

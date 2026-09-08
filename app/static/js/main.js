@@ -125,14 +125,7 @@
         scrollTrigger: { trigger: '.intro-detail', start: 'top 84%', once: true },
       });
 
-      gsap.from('.skill-row', {
-        y: 46,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.1,
-        ease: 'power3.out',
-        scrollTrigger: { trigger: '.skill-list', start: 'top 78%', once: true },
-      });
+      // The database-driven skills chapter owns its lightweight reveal sequence.
 
       document.querySelectorAll('.exposure-item').forEach((item) => {
         gsap.from(item.children, {

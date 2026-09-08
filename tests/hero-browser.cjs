@@ -134,7 +134,7 @@ const fs = require('node:fs');
     await reduced.locator('.is-webgl-fallback').waitFor();
     assert.equal(await reduced.locator('.hero-orb-fallback').evaluate(el => getComputedStyle(el).opacity), '1');
     results.push('WebGL context loss restores the static fallback');
-    assert.deepEqual(errors, [], 'No unexpected browser errors');
+    assert.deepEqual(errors, [], `No unexpected browser errors: ${JSON.stringify(errors)}`);
     console.log(JSON.stringify({ passed: results, screenshots: output }, null, 2));
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

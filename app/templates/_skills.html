@@ -1,0 +1,24 @@
+<section class="capabilities skills-section section-pad" id="skills" aria-labelledby="skills-heading" data-cursor-theme="theme">
+  <div class="container">
+    <header class="skills-intro">
+      <p class="section-number">02 / SKILLS</p>
+      <div><h2 class="skills-title" id="skills-heading"><span class="line-mask"><span>TOOLS I USE</span></span><span class="line-mask"><span>TO BUILD</span></span><span class="line-mask"><span class="skills-title-outline">REAL THINGS.</span></span></h2><p class="skills-intro-copy">A growing toolkit for web development, data analysis, backend systems, databases, and deployment.</p></div>
+      <span class="skills-count">{{ '%02d'|format(skills|length) }} / TECHNOLOGIES</span>
+    </header>
+    {% if skills %}<div class="skills-list" aria-label="Technical skills">
+      {% for skill in skills %}
+      <article class="skill-row-v2" data-skill-row style="--skill-accent: {{ skill.safe_accent }}">
+        <h3 class="skill-row-heading"><button class="skill-toggle" type="button" aria-expanded="true" aria-controls="skill-detail-{{ skill.id }}" id="skill-toggle-{{ skill.id }}" data-cursor="EXPLORE">
+          <span class="skill-number" aria-hidden="true">{{ '%02d'|format(loop.index) }}</span>
+          <span class="skill-icon" aria-hidden="true">{% if skill.icon_filename %}<img src="{{ url_for('static', filename=skill.icon_filename) }}" alt="" width="48" height="48" loading="lazy" decoding="async"><span class="skill-icon-fallback" hidden>{{ skill.fallback_mark }}</span>{% else %}<span class="skill-icon-fallback">{{ skill.fallback_mark }}</span>{% endif %}</span>
+          <span class="skill-name">{{ skill.name }}</span>
+          <span class="skill-category">{{ skill.category }}</span>
+          <span class="skill-indicator" aria-hidden="true">↗</span>
+        </button></h3>
+        <div class="skill-detail" id="skill-detail-{{ skill.id }}" role="region" aria-labelledby="skill-toggle-{{ skill.id }}"><div><p>{% if skill.emoji and skill.icon_filename %}<span class="skill-detail-emoji" aria-hidden="true">{{ skill.emoji }}</span>{% endif %}{{ skill.description or 'Part of my current development toolkit.' }}</p></div></div>
+      </article>
+      {% endfor %}
+    </div><p class="skills-hint">Hover to explore · Tap or press Enter for details</p>
+    {% else %}<div class="skills-empty"><p>My toolkit is being updated. Explore my projects to see the technologies in practice.</p><a class="text-link" href="{{ url_for('projects.index') }}">Explore projects <span aria-hidden="true">↗</span></a></div>{% endif %}
+  </div>
+</section>

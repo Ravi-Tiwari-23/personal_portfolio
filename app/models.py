@@ -1,4 +1,8 @@
 from datetime import UTC, datetime
+from pathlib import Path
+import re
+
+from flask import current_app
 
 from flask_login import UserMixin
 
@@ -86,6 +90,43 @@ class Technology(db.Model):
     name = db.Column(db.String(80), unique=True, nullable=False)
     category = db.Column(db.String(80), default="Tools", nullable=False)
     projects = db.relationship("Project", secondary=project_technologies, back_populates="technologies")
+
+
+class Skill(db.Model):
+    __tablename__ = "skills"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    slug = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    category = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(360), nullable=False, default="")
+    icon = db.Column(db.String(100), nullable=False, default="")
+    icon_type = db.Column(db.String(20), nullable=False, default="builtin")
+    accent_color = db.Column(db.String(7), nullable=False, default="#FF7657")
+    emoji = db.Column(db.String(32), nullable=False, default="")
+    display_order = db.Column(db.Integer, nullable=False, default=0)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=utcnow, onupdate=utcnow)
+    __table_args__ = (
+        db.Index("ix_skills_active_order", "is_active", "display_order"),
+        db.Index("uq_skills_name_lower", db.func.lower(name), unique=True),
+    )
+
+    @property
+    def safe_accent(self):
+        return self.accent_color if re.fullmatch(r"#[0-9a-fA-F]{6}", self.accent_color or "") else "#FF7657"
+
+    @property
+    def icon_filename(self):
+        from .skill_catalog import SKILL_ICONS
+        filename = SKILL_ICONS.get(self.icon) if self.icon_type == "builtin" else None
+        if filename and (Path(current_app.static_folder) / "images" / "skills" / filename).is_file():
+            return "images/skills/" + filename
+        return None
+
+    @property
+    def fallback_mark(self):
+        return (self.emoji if self.icon_type != "initials" and self.emoji else self.name[:2].upper())
 
 
 class ProjectImage(db.Model):

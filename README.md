@@ -39,12 +39,11 @@ flask --app run.py create-admin
 
 ## Database and production
 
-The app creates tables automatically for a clean development database. For deployed environments, use migrations:
+The app creates tables automatically for a clean development database. Migrations are already included; do not run `db init` again. For deployed environments with an established migration history, set `AUTO_SEED=0` and run:
 
 ```powershell
-flask --app run.py db init
-flask --app run.py db migrate -m "Initial schema"
 flask --app run.py db upgrade
+flask --app run.py seed-skills
 ```
 
 Set `DATABASE_URL` to a PostgreSQL connection string in production, set `SESSION_COOKIE_SECURE=1` and `AUTO_SEED=0`, serve behind HTTPS, run `flask --app run.py db upgrade`, and use a persistent/object-backed media volume. Run with:
@@ -60,6 +59,23 @@ pytest -q
 ```
 
 ## Content notes
+
+### Skills editor
+
+Use **Admin → Skills** to add/edit skills, choose a local logo or fallback,
+change accent colors, hide/show rows, and save display order. Deleting a skill
+requires a separate confirmation page and never changes project technology tags.
+The ten initial skills are seeded once; subsequent restarts or `seed-skills` runs
+preserve admin edits, hidden states, and deletions.
+
+For an older development database created with `AUTO_SEED=1`, the next start adds
+the new skills table and seeds it without replacing existing content. Back up the
+database before any schema update. Do not run a fresh initial migration against
+an existing unstamped database; first reconcile its schema and migration baseline.
+
+Skill logos are local SVGs from Devicon and Simple Icons; attribution and licenses
+are in `app/static/images/skills/NOTICE.md`. New arbitrary skills can use initials
+or an emoji fallback without uploading executable SVG content.
 
 Seeded copy and social URLs are representative. Replace them from **Admin → Profile & settings**. Upload the production résumé from **Admin → Résumé** and update each project with real links, outcomes, and screenshots before launch.
 

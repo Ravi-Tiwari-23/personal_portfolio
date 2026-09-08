@@ -113,6 +113,11 @@ def register_commands(app):
         seed_defaults(force_projects=True)
         click.echo("Portfolio content seeded.")
 
+    @app.cli.command("seed-skills")
+    def seed_skills_command():
+        from .skill_catalog import seed_skills_once
+        click.echo(f"Added {seed_skills_once()} skills. Existing edits and deletions are preserved.")
+
 
 def seed_defaults(force_projects=False):
     changed = False
@@ -159,3 +164,5 @@ def seed_defaults(force_projects=False):
 
     if changed:
         db.session.commit()
+    from .skill_catalog import seed_skills_once
+    seed_skills_once()

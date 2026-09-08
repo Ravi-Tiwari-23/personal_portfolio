@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit skill' if skill else 'Add skill' }}{% endblock %}
+{% macro field(input, hint='') %}<div class="admin-field">{{ input.label }}{{ input() }}{% if hint %}<p>{{ hint }}</p>{% endif %}{% for error in input.errors %}<small>{{ error }}</small>{% endfor %}</div>{% endmacro %}
+{% block content %}
+<header class="admin-page-head"><div><a class="admin-back" href="{{ url_for('admin.skills') }}">← Back to skills</a><h1>{{ 'Edit ' + skill.name if skill else 'Add skill' }}</h1><p>Update your public skills without changing any code.</p></div></header>
+<form method="post" class="editor-form skill-editor" novalidate>
+{{ form.hidden_tag() }}
+<div class="editor-main">
+  <section class="panel form-section"><div class="panel-head"><h2>Skill details</h2></div>{{ field(form.name) }}{{ field(form.category, 'For example: Frontend, Programming / Backend, or Database.') }}{{ field(form.description, 'A brief, practical description. Maximum 360 characters.') }}</section>
+  <section class="panel form-section"><div class="panel-head"><h2>Icon & color</h2></div>{{ field(form.icon_type) }}{{ field(form.icon, 'Choose a local technology logo. A missing logo falls back to your emoji or the skill initials.') }}{{ field(form.emoji, 'Optional secondary accent or fallback, such as ⚙️.') }}{{ field(form.accent_color, 'Six-digit hex color, such as #44B78B. Used for subtle borders and hover accents.') }}</section>
+</div>
+<aside class="editor-side"><section class="panel form-section"><div class="panel-head"><h2>Visibility & order</h2></div><label class="switch-row">{{ form.is_active() }}<span><strong>Active</strong><small>Show in the public Skills section</small></span></label>{{ field(form.display_order, 'Lower numbers appear first.') }}{{ form.submit(class_="admin-button primary full") }}</section></aside>
+</form>
+{% endblock %}
