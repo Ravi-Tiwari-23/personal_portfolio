@@ -155,8 +155,8 @@ html[data-theme="light"] .hero-orb-fallback::after { border-color: rgba(255,255,
 .hero-skill:hover small, .hero-skill:focus-visible small, .hero-skill.is-hovered small { opacity: 1; transform: none; }
 .cursor-ring.cursor--skill { width: 58px; height: 58px; margin: -29px; border-color: var(--accent); }
 .cursor-dot.cursor--skill { background: var(--accent); }
-.hero-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: end; padding-bottom: 3rem; }
-.hero-copy { grid-column: 2; max-width: 31rem; }
+.hero-bottom { display: grid; grid-template-columns: minmax(0, 520px) auto; justify-content: space-between; align-items: end; gap: 2rem; padding-bottom: 3rem; }
+.hero-copy { grid-column: 1; width: 100%; max-width: 520px; margin: 0; text-align: left; }
 .hero-copy p { margin: 0; font-size: clamp(1.05rem, 1.5vw, 1.35rem); line-height: 1.4; letter-spacing: -.02em; }
 .hero-copy .hero-title { margin-bottom: 1rem; color: var(--accent-hover); font: 500 .72rem/1.5 "DM Mono", monospace; letter-spacing: .05em; text-transform: uppercase; }
 .circle-link { justify-self: end; width: 9.5rem; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 1.4rem; border-radius: 50%; background: var(--accent); color: var(--text); font: 600 .78rem/1.25 "DM Mono", monospace; text-transform: uppercase; transition: background var(--fast), color var(--fast), transform var(--normal) var(--ease); }
@@ -438,7 +438,6 @@ body, .hero, .home-contact, .about-details, .site-header, .page-hero-foot, .fiel
   .hero h1 { font-size: clamp(4.5rem, 13.5vw, 8rem); line-height: .78; }
   .hero-line-indent { margin-left: 0; }
   .hero-bottom { grid-template-columns: 1fr auto; gap: 2rem; }
-  .hero-copy { grid-column: 1; }
   .hero-universe { inset: 0; width: auto; height: auto; }
   .hero-orb-fallback, .hero-orbit-guide { left: 64%; }
   .hero-orb-fallback { width: min(34%, 19rem); }
