@@ -86,8 +86,7 @@
         .from('.hero-name .hero-line.outline', { yPercent: 110, opacity: 0, duration: 0.95 }, '-=0.45')
         .from('.hero-skill', { opacity: 0, duration: 0.52, stagger: 0.055, clearProps: 'opacity' }, '-=0.48')
         .from('.hero-copy > *', { y: 24, opacity: 0, duration: 0.65, stagger: 0.1 }, '-=0.42')
-        .from('.hero-cta', { scale: 0.72, opacity: 0, duration: 0.75 }, '-=0.5')
-        .from('.scroll-note', { x: -18, opacity: 0, duration: 0.55 }, '-=0.4');
+        .from('.hero-cta', { scale: 0.72, opacity: 0, duration: 0.75 }, '-=0.5');
 
       const heroScroll = gsap.timeline({
         defaults: { ease: 'none' },
@@ -107,7 +106,7 @@
         .to('.hero-top', { y: -30, opacity: 0.35 }, 0)
         .to('.hero-cta', { y: -90, scale: 0.86 }, 0)
         .to('.hero-universe', { y: -22 }, 0)
-        .fromTo('.intro-band', { y: 70 }, { y: 0 }, 0.52);
+        .fromTo('.intro-band', { y: 28 }, { y: 0 }, 0.52);
 
       gsap.from('.about-declaration', {
         y: 60,

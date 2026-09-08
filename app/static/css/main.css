@@ -131,7 +131,7 @@ html[data-theme="light"] .theme-icon-moon { opacity: 0; transform: translateY(-1
 .outline { color: transparent; -webkit-text-stroke: 1.5px currentColor; -webkit-text-stroke-color: var(--text); font-weight: 400; }
 .hero-dot { color: var(--accent-hover); -webkit-text-stroke: 0; }
 .hero-name { position: relative; z-index: 10; pointer-events: none; }
-.hero-top, .hero-bottom, .scroll-note { position: relative; z-index: 12; }
+.hero-top, .hero-bottom { position: relative; z-index: 12; }
 .hero-universe { position: absolute; z-index: 4; inset: 0; overflow: clip; contain: layout paint; perspective: 1100px; pointer-events: none; }
 .hero-universe-shell { position: absolute; inset: 0; transform-style: preserve-3d; }
 .hero-orb-canvas { position: absolute; z-index: 4; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -162,8 +162,8 @@ html[data-theme="light"] .hero-orb-fallback::after { border-color: rgba(255,255,
 .circle-link { justify-self: end; width: 9.5rem; aspect-ratio: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 1.4rem; border-radius: 50%; background: var(--accent); color: var(--text); font: 600 .78rem/1.25 "DM Mono", monospace; text-transform: uppercase; transition: background var(--fast), color var(--fast), transform var(--normal) var(--ease); }
 .circle-link:hover { background: var(--accent-hover); color: var(--ink); }
 .circle-link i { align-self: end; font-style: normal; font-size: 1.2rem; }
-.scroll-note { position: absolute; bottom: 3rem; left: 0; display: flex; align-items: center; gap: 1rem; color: var(--accent-hover); font: .65rem "DM Mono", monospace; text-transform: uppercase; transform: rotate(-90deg) translateX(-100%); transform-origin: left bottom; }
-.scroll-note span { width: 3rem; height: 1px; background: var(--accent-hover); }
+.scroll-note { position: absolute; z-index: 20; bottom: 3rem; left: calc((100vw - var(--container)) / -2 + clamp(1rem, 2vw, 2rem)); display: flex; align-items: center; gap: 1rem; color: var(--accent-hover); font: .65rem "DM Mono", monospace; text-transform: uppercase; writing-mode: vertical-rl; opacity: .9; transform: rotate(180deg); transform-origin: center; }
+.scroll-note span { width: 1px; height: 3rem; background: var(--accent-hover); }
 
 .section-number, .eyebrow { color: var(--accent-hover); font: 500 .7rem/1.4 "DM Mono", monospace; letter-spacing: .08em; text-transform: uppercase; }
 .intro-band { background: var(--paper); color: var(--ink); }
@@ -238,7 +238,7 @@ html[data-theme="light"] .hero-orb-fallback::after { border-color: rgba(255,255,
 .editorial-heading { display: grid; grid-template-columns: minmax(9rem, 1fr) 4fr; gap: 4vw; align-items: end; margin-bottom: clamp(4rem, 9vw, 9rem); }
 .scene-panel { position: relative; z-index: 2; }
 
-.intro-band { min-height: 100svh; display: flex; align-items: center; }
+.intro-band { min-height: 100svh; padding-top: clamp(3.5rem, 5vw, 5rem); display: flex; align-items: flex-start; }
 .about-content { position: relative; }
 .about-content .chapter-heading { margin-bottom: clamp(4rem, 8vw, 8rem); color: var(--ink); }
 .about-declaration { max-width: 18ch; margin: 0 0 clamp(3rem, 6vw, 6rem); font-size: clamp(2.7rem, 6vw, 6.2rem); font-weight: 500; line-height: .98; letter-spacing: -.065em; text-transform: uppercase; }
@@ -445,7 +445,7 @@ body, .hero, .home-contact, .about-details, .site-header, .page-hero-foot, .fiel
   .orbit-guide-two { width: min(52%, 34rem); }
   .orbit-guide-three { width: min(34%, 21rem); }
   .hero-skill:nth-child(n+9) { display: none; }
-  .scroll-note { display: none; }
+  .scroll-note { bottom: 2rem; left: calc((100vw - var(--container)) / -2 + clamp(1rem, 2vw, 1.5rem)); font-size: .6rem; }
   .intro-grid { grid-template-columns: 1fr; }
   .section-header { display: grid; gap: 3rem; }
   .section-header h2 { text-align: left; }
@@ -476,6 +476,7 @@ body, .hero, .home-contact, .about-details, .site-header, .page-hero-foot, .fiel
   :root { --container: calc(100vw - 2rem); }
   body { font-size: .95rem; }
   .section-pad { padding-block: 6rem; }
+  .intro-band.section-pad { padding-top: 4rem; }
   .site-header { left: 1rem; right: 1rem; }
   .hero, .hero-inner { min-height: 58rem; }
   .hero-top { align-items: center; }
@@ -491,6 +492,7 @@ body, .hero, .home-contact, .about-details, .site-header, .page-hero-foot, .fiel
   .orbit-guide-three { width: 46%; }
   .hero-skill { min-height: 2rem; padding: .45rem .55rem; font-size: .58rem; }
   .hero-skill:nth-child(n+7) { display: none; }
+  .scroll-note { display: none; }
   .cursor-dot, .cursor-ring { display: none; }
   .circle-link { width: 8rem; justify-self: end; }
   .statement { font-size: 2.6rem; }
