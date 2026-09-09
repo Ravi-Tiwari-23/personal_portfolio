@@ -63,7 +63,6 @@ def create_app(config_class=Config):
 
     with app.app_context():
         if app.config.get("AUTO_SEED"):
-            db.create_all()
             seed_defaults()
 
     return app
