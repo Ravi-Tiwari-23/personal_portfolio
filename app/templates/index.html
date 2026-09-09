@@ -2,52 +2,80 @@
 {% block title %}{{ site.site_title }}{% endblock %}
 {% block body_class %}home-page{% endblock %}
 {% block extra_styles %}
-<link rel="preload" href="{{ url_for('static', filename='fonts/SpaceGrotesk.ttf') }}" as="font" type="font/ttf" crossorigin>
+<link rel="preload" href="{{ url_for('static', filename='fonts/SpaceGrotesk.ttf') }}" as="font" type="font/ttf"
+  crossorigin>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/hero-galaxy.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/skills.css') }}">
 {% endblock %}
-{% block extra_scripts %}<script type="module" src="{{ url_for('static', filename='js/hero-3d.js') }}"></script><script src="{{ url_for('static', filename='js/skills.js') }}" defer></script>{% endblock %}
+{% block extra_scripts %}
+<script type="module" src="{{ url_for('static', filename='js/hero-3d.js') }}"></script>
+<script src="{{ url_for('static', filename='js/skills.js') }}" defer></script>{% endblock %}
 {% block content %}
 <section class="hero" id="home" data-cursor-theme="theme">
   <div class="hero-inner container">
-  <div class="hero-top hero-intro">
-    <p class="availability"><span></span>{{ site.availability }}</p>
-    <p class="hero-location">{{ site.location }}<br><span id="local-time">IST — --:--</span></p>
-  </div>
-  <h1 aria-label="Ravi Kumar Tiwari" class="hero-name">
-    <span class="line-mask"><span class="hero-line"><span class="hero-name-solid">RAVI KUMAR</span></span></span>
-    <span class="line-mask hero-line-indent"><span class="hero-line outline"><span class="hero-name-outline" data-text="TIWARI">TIWARI</span><span class="hero-dot">.</span></span></span>
-    <span class="hero-name-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
-  </h1>
-  <div class="hero-universe" data-hero-universe aria-label="Interactive orbit of Ravi's technical skills">
-    <div class="hero-universe-shell" aria-hidden="true">
-      <div class="hero-space-fallback"></div>
-      <canvas class="hero-orb-canvas"></canvas>
-      <div class="hero-orb-fallback"><i></i><i></i><i></i></div>
-      <span class="hero-orbit-guide orbit-guide-one"></span>
-      <span class="hero-orbit-guide orbit-guide-two"></span>
-      <span class="hero-orbit-guide orbit-guide-three"></span>
+    <div class="hero-top hero-intro">
+      <p class="availability"><span></span>{{ site.availability }}</p>
+      <p class="hero-location">{{ site.location }}<br><span id="local-time">IST — --:--</span></p>
     </div>
-    <ul class="hero-skill-cloud" aria-label="Technical skills represented in the orbit">
-      <li class="hero-skill" data-hero-skill data-skill-detail="Intelligent systems" tabindex="0"><i></i><span>AI</span><small>Intelligent systems</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Automation · Backend" tabindex="0"><i></i><span>Python</span><small>Automation · Backend</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Analysis · Insight" tabindex="0"><i></i><span>Data Analysis</span><small>Analysis · Insight</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Queries · Structure" tabindex="0"><i></i><span>SQL</span><small>Queries · Structure</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Web applications" tabindex="0"><i></i><span>Django</span><small>Web applications</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Interface logic" tabindex="0"><i></i><span>JavaScript</span><small>Interface logic</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Accessible interfaces" tabindex="0"><i></i><span>HTML / CSS</span><small>Accessible interfaces</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Relational data" tabindex="0"><i></i><span>MySQL</span><small>Relational data</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Analysis · Reporting" tabindex="0"><i></i><span>Excel</span><small>Analysis · Reporting</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Statistical analysis" tabindex="0"><i></i><span>SPSS</span><small>Statistical analysis</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Version control" tabindex="0"><i></i><span>Git / GitHub</span><small>Version control</small></li>
-      <li class="hero-skill" data-hero-skill data-skill-detail="Responsive systems" tabindex="0"><i></i><span>Web Development</span><small>Responsive systems</small></li>
-    </ul>
-  </div>
-  <div class="hero-bottom">
-    <div class="hero-copy"><p class="hero-title">AI • DATA • WEB</p><p>{{ site.hero_statement }}</p></div>
-    <a class="circle-link hero-cta" href="#about" data-magnetic data-cursor="EXPLORE ↓"><span>Explore<br>my work</span><i>↓</i></a>
-  </div>
-  <div class="scroll-note" aria-hidden="true"><span></span>Scroll to discover</div>
+    <h1 aria-label="Ravi Kumar Tiwari" class="hero-name">
+      <span class="line-mask"><span class="hero-line"><span class="hero-name-solid">RAVI KUMAR</span></span></span>
+      <span class="line-mask hero-line-indent"><span class="hero-line outline"><span class="hero-name-outline"
+            data-text="TIWARI">TIWARI</span><span class="hero-dot">.</span></span></span>
+      <span class="hero-name-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    </h1>
+    <div class="hero-universe" data-hero-universe aria-label="Interactive orbit of Ravi's technical skills">
+      <div class="hero-universe-shell" aria-hidden="true">
+        <div class="hero-space-fallback"></div>
+        <canvas class="hero-orb-canvas"></canvas>
+        <div class="hero-orb-fallback"><i></i><i></i><i></i></div>
+        <span class="hero-orbit-guide orbit-guide-one"></span>
+        <span class="hero-orbit-guide orbit-guide-two"></span>
+        <span class="hero-orbit-guide orbit-guide-three"></span>
+      </div>
+      <ul class="hero-skill-cloud" aria-label="Technical skills represented in the orbit">
+        <li class="hero-skill" data-hero-skill data-skill-detail="Intelligent systems" tabindex="0">
+          <i></i><span>AI</span><small>Intelligent systems</small>
+        </li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Automation · Backend" tabindex="0">
+          <i></i><span>Python</span><small>Automation · Backend</small>
+        </li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Analysis · Insight" tabindex="0"><i></i><span>Data
+            Analysis</span><small>Analysis · Insight</small></li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Queries · Structure" tabindex="0">
+          <i></i><span>SQL</span><small>Queries · Structure</small>
+        </li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Web applications" tabindex="0">
+          <i></i><span>Django</span><small>Web applications</small>
+        </li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Interface logic" tabindex="0">
+          <i></i><span>JavaScript</span><small>Interface logic</small>
+        </li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Accessible interfaces" tabindex="0"><i></i><span>HTML
+            / CSS</span><small>Accessible interfaces</small></li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Relational data" tabindex="0">
+          <i></i><span>MySQL</span><small>Relational data</small>
+        </li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Analysis · Reporting" tabindex="0">
+          <i></i><span>Excel</span><small>Analysis · Reporting</small>
+        </li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Statistical analysis" tabindex="0">
+          <i></i><span>SPSS</span><small>Statistical analysis</small>
+        </li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Version control" tabindex="0"><i></i><span>Git /
+            GitHub</span><small>Version control</small></li>
+        <li class="hero-skill" data-hero-skill data-skill-detail="Responsive systems" tabindex="0"><i></i><span>Web
+            Development</span><small>Responsive systems</small></li>
+      </ul>
+    </div>
+    <div class="hero-bottom">
+      <div class="hero-copy">
+        <p class="hero-title">PYTHON • DATA ANALYST • BACKEND • WEB DEV</p>
+        <p>{{ site.hero_statement }}</p>
+      </div>
+      <a class="circle-link hero-cta" href="#about" data-magnetic data-cursor="EXPLORE ↓"><span>Explore<br>my
+          projects</span><i>↓</i></a>
+    </div>
+    <div class="scroll-note" aria-hidden="true"><span></span>Scroll to discover</div>
   </div>
 </section>
 
@@ -61,7 +89,9 @@
         <p>{{ site.about }}</p>
         <a class="text-link" href="{{ url_for('main.about') }}">More about me <span>↗</span></a>
       </div>
-      <div class="about-keywords" aria-label="Areas of focus"><span>Python</span><span>Data</span><span>AI</span><span>Web</span><span>Django</span></div>
+      <div class="about-keywords" aria-label="Areas of focus">
+        <span>Python</span><span>Data</span><span>AI</span><span>Web</span><span>Django</span>
+      </div>
     </div>
   </div>
 </section>
@@ -70,32 +100,45 @@
 
 <section class="experience section-pad" id="exposure" data-cursor-theme="light">
   <div class="container experience-layout">
-  <div class="experience-intro">
-    <p class="section-number">03 / TECHNICAL EXPOSURE</p>
-    <h2 class="chapter-heading"><span class="line-mask"><span>TECHNICAL</span></span><span class="line-mask"><span>EXPOSURE</span></span></h2>
-  </div>
-  <div class="timeline">
-    {% for item in experiences %}
-    <article class="exposure-item">
-      <span>{{ '%02d'|format(loop.index) }}</span>
-      <div><p>{{ item.start_date }} — {{ item.end_date or 'Present' }}</p><h3>{{ item.position }}</h3><h4>{{ item.company }}</h4><p>{{ item.description }}</p><small>{{ item.technologies }}</small></div>
-    </article>
-    {% endfor %}
-  </div>
+    <div class="experience-intro">
+      <p class="section-number">03 / TECHNICAL EXPOSURE</p>
+      <h2 class="chapter-heading"><span class="line-mask"><span>TECHNICAL</span></span><span
+          class="line-mask"><span>EXPOSURE</span></span></h2>
+    </div>
+    <div class="timeline">
+      {% for item in experiences %}
+      <article class="exposure-item">
+        <span>{{ '%02d'|format(loop.index) }}</span>
+        <div>
+          <p>{{ item.start_date }} — {{ item.end_date or 'Present' }}</p>
+          <h3>{{ item.position }}</h3>
+          <h4>{{ item.company }}</h4>
+          <p>{{ item.description }}</p><small>{{ item.technologies }}</small>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
   </div>
 </section>
 
 <section class="work section-pad" id="projects" data-cursor-theme="dark">
   <div class="container">
-  <header class="project-intro">
-    <div><p class="section-number">04 / PROJECTS</p><p>Practical systems across Python, AI, data, and the web.</p></div>
-    <h2 class="chapter-heading"><span class="line-mask"><span>SELECTED</span></span><span class="line-mask"><span>PROJECTS</span></span></h2>
-    <div class="project-progress" aria-hidden="true"><span data-project-current>01</span><i></i><span>{{ '%02d'|format(projects|length) }}</span></div>
-  </header>
-  <div class="project-list project-stack">
-    {% for project in projects %}{% include "_project_row.html" %}{% else %}<p class="empty-state">Selected work is being prepared.</p>{% endfor %}
-  </div>
-  <a class="outline-button" href="{{ url_for('projects.index') }}" data-magnetic data-cursor="VIEW ALL ↗">View all projects <span>↗</span></a>
+    <header class="project-intro">
+      <div>
+        <p class="section-number">04 / PROJECTS</p>
+        <p>Practical systems across Python, AI, data, and the web.</p>
+      </div>
+      <h2 class="chapter-heading"><span class="line-mask"><span>SELECTED</span></span><span
+          class="line-mask"><span>PROJECTS</span></span></h2>
+      <div class="project-progress" aria-hidden="true"><span data-project-current>01</span><i></i><span>{{
+          '%02d'|format(projects|length) }}</span></div>
+    </header>
+    <div class="project-list project-stack">
+      {% for project in projects %}{% include "_project_row.html" %}{% else %}<p class="empty-state">Selected work is
+        being prepared.</p>{% endfor %}
+    </div>
+    <a class="outline-button" href="{{ url_for('projects.index') }}" data-magnetic data-cursor="VIEW ALL ↗">View all
+      projects <span>↗</span></a>
   </div>
 </section>
 
@@ -103,12 +146,17 @@
   <div class="container home-contact-grid">
     <p class="section-number">05 / CONTACT</p>
     <div>
-      <h2><span class="line-mask"><span>LET’S BUILD</span></span><span class="line-mask"><span>SOMETHING</span></span><span class="line-mask"><span><em>MEANINGFUL.</em></span></span></h2>
+      <h2><span class="line-mask"><span>LET’S BUILD</span></span><span
+          class="line-mask"><span>SOMETHING</span></span><span
+          class="line-mask"><span><em>MEANINGFUL.</em></span></span></h2>
       <p>Have an opportunity, project, collaboration, or just want to connect?</p>
       <div class="contact-actions">
-        <a class="outline-button" href="mailto:{{ site.email }}" aria-label="Send Ravi Kumar Tiwari an email" data-cursor="OPEN ↗">Email <span>↗</span></a>
-        {% if site.github %}<a class="contact-text-link" href="{{ site.github }}" target="_blank" rel="noopener noreferrer" data-cursor="OPEN ↗">GitHub ↗</a>{% endif %}
-        {% if site.linkedin %}<a class="contact-text-link" href="{{ site.linkedin }}" target="_blank" rel="noopener noreferrer" data-cursor="OPEN ↗">LinkedIn ↗</a>{% endif %}
+        <a class="outline-button" href="mailto:{{ site.email }}" aria-label="Send Ravi Kumar Tiwari an email"
+          data-cursor="OPEN ↗">Email <span>↗</span></a>
+        {% if site.github %}<a class="contact-text-link" href="{{ site.github }}" target="_blank"
+          rel="noopener noreferrer" data-cursor="OPEN ↗">GitHub ↗</a>{% endif %}
+        {% if site.linkedin %}<a class="contact-text-link" href="{{ site.linkedin }}" target="_blank"
+          rel="noopener noreferrer" data-cursor="OPEN ↗">LinkedIn ↗</a>{% endif %}
         <a class="contact-text-link" href="{{ url_for('main.resume_download') }}" data-cursor="DOWNLOAD ↓">Résumé ↓</a>
       </div>
     </div>

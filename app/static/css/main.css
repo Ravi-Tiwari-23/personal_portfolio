@@ -388,7 +388,7 @@ html[data-theme="light"] .hero-orb-fallback::after { border-color: rgba(255,255,
 .gallery img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
 .gallery img:nth-child(3n) { grid-column: 1/-1; aspect-ratio: 16/8; }
 .case-results { padding-block: var(--space-xl); }
-.case-results h2 { max-width: 72rem; margin: 5rem 0; font-size: clamp(2.7rem, 5.4vw, 5.7rem); line-height: 1.03; letter-spacing: -.06em; font-weight: 500; }
+.case-results h2 { max-width: 68rem; margin: 5rem 0; font-size: clamp(2.4rem, 4vw, 4.5rem); line-height: 1.05; letter-spacing: -.04em; font-weight: 500; }
 .case-links { display: flex; gap: 1rem; }
 .case-links .outline-button { margin-top: 0; }
 .case-nav { display: grid; grid-template-columns: 1fr 1fr; background: var(--paper); color: var(--ink); }
@@ -427,6 +427,10 @@ body, .hero, .home-contact, .about-details, .site-header, .page-hero-foot, .fiel
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   body.cursor-ready, body.cursor-ready a, body.cursor-ready button { cursor: none; }
   .cursor-ready .cursor-dot, .cursor-ready .cursor-ring { opacity: 1; }
+}
+
+@media (max-width: 1024px) {
+  .case-results h2 { font-size: clamp(2.2rem, 5vw, 3.5rem); line-height: 1.08; }
 }
 
 @media (max-width: 900px) {
@@ -470,6 +474,10 @@ body, .hero, .home-contact, .about-details, .site-header, .page-hero-foot, .fiel
   .contact-intro h1 { margin-block: 4rem; }
   .case-section { grid-template-columns: 1fr; }
   .about-columns { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .case-results h2 { font-size: clamp(1.8rem, 8vw, 2.6rem); line-height: 1.1; letter-spacing: -.025em; }
 }
 
 @media (max-width: 620px) {
