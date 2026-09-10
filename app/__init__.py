@@ -9,8 +9,8 @@ from werkzeug.security import generate_password_hash
 from config import Config
 
 from .extensions import csrf, db, limiter, login_manager, migrate
-from .media_storage import image_url
-from .models import Certificate, Experience, Project, SiteSetting, Technology, User
+from .media_storage import image_url, responsive_image_url
+from .models import Experience, Project, SiteSetting, Technology, User
 
 
 DEFAULT_SETTINGS = {
@@ -75,8 +75,8 @@ def register_context(app):
         settings = {row.key: row.value for row in SiteSetting.query.all()}
         return {
             "site": {**DEFAULT_SETTINGS, **settings},
-            "has_certificates": Certificate.query.filter_by(is_active=True).first() is not None,
             "image_url": image_url,
+            "responsive_image_url": responsive_image_url,
         }
 
 

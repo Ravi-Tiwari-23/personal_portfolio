@@ -35,6 +35,22 @@ def test_admin_certificate_list_create_edit_reorder_toggle_and_delete(app, clien
     auth.login()
     assert client.get("/admin/certificates").status_code == 200
 
+    form_markup = client.get("/admin/certificates/new").data.decode()
+    for field in (
+        "title",
+        "issuer",
+        "description",
+        "credential_id",
+        "credential_url",
+        "issued_date",
+        "expiry_date",
+        "image",
+        "display_order",
+        "is_featured",
+        "is_active",
+    ):
+        assert f'name="{field}"' in form_markup
+
     data = certificate_data(image=png_upload())
     created = client.post("/admin/certificates/new", data=data, content_type="multipart/form-data", follow_redirects=True)
     assert b"Certificate added" in created.data
@@ -97,6 +113,18 @@ def test_certificate_public_order_featured_state_and_empty_state(app, client):
     assert 'certificate-card is-featured' in markup
     assert 'id="certificates"' in markup
     assert "data-image-fallback" in markup
+
+
+def test_certificate_anchor_and_navigation_remain_visible_without_records(client):
+    markup = client.get("/").data.decode()
+    desktop = markup.index('class="desktop-nav"')
+    projects = markup.index(">Projects</a>", desktop)
+    certificates = markup.index('href="#certificates">Certificates</a>', projects)
+    contact = markup.index(">Contact</a>", certificates)
+    assert projects < certificates < contact
+    assert '<section class="certificates section-pad" id="certificates"' in markup
+    assert "CREDENTIALS &amp;" in markup
+    assert '<small>04</small> Certificates' in markup
 
 
 def test_invalid_certificate_image_is_rejected(app, client, auth):

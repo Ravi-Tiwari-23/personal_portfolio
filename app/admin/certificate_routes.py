@@ -32,7 +32,7 @@ def certificate_edit(certificate_id=None):
         new_image = None
         try:
             if form.image.data and form.image.data.filename:
-                new_image = store_image(form.image.data, "portfolio/certificates")
+                new_image = store_image(form.image.data, "ravi-portfolio/certificates")
             for field in ("title", "issuer", "description", "credential_id", "credential_url", "issued_date", "expiry_date", "display_order", "is_featured", "is_active"):
                 setattr(item, field, getattr(form, field).data)
             item.description = item.description or ""

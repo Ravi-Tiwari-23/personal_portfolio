@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
 import uuid
+from urllib.parse import urlsplit
 
 from flask import current_app, url_for
 from PIL import Image, UnidentifiedImageError
@@ -125,3 +126,18 @@ def image_url(location):
     if relative.startswith("uploads/"):
         relative = relative[8:]
     return url_for("main.media", filename=relative)
+
+
+def responsive_image_url(location, width=None):
+    """Add safe delivery transforms to Cloudinary image URLs only."""
+    resolved = image_url(location)
+    if not resolved:
+        return resolved
+    parsed = urlsplit(resolved)
+    marker = "/image/upload/"
+    if parsed.scheme != "https" or parsed.hostname != "res.cloudinary.com" or marker not in parsed.path:
+        return resolved
+    transforms = ["f_auto", "q_auto", "c_limit"]
+    if width is not None:
+        transforms.append(f"w_{max(64, min(int(width), 2400))}")
+    return resolved.replace(marker, f"{marker}{','.join(transforms)}/", 1)

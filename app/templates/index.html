@@ -143,12 +143,11 @@
   </div>
 </section>
 
-{% if certificates %}
 <section class="certificates section-pad" id="certificates" data-cursor-theme="theme">
   <div class="container">
     <header class="certificate-intro">
       <p class="section-number">05 / CERTIFICATES</p>
-      <div><h2 class="chapter-heading"><span class="line-mask"><span>LEARNING THAT</span></span><span class="line-mask"><span>BECAME PROOF.</span></span></h2><p>A collection of credentials earned through continuous learning, technical practice, and professional development.</p></div>
+      <div><h2 class="chapter-heading"><span class="line-mask"><span>CREDENTIALS &amp;</span></span><span class="line-mask"><span>MILESTONES.</span></span></h2><p>A collection of credentials earned through continuous learning, technical practice, and professional development.</p></div>
     </header>
     <div class="certificate-grid">
       {% for certificate in certificates %}
@@ -156,7 +155,7 @@
         <div class="certificate-image image-frame">
           {% if certificate.image_url %}
             {% if certificate.safe_credential_url %}<a href="{{ certificate.safe_credential_url }}" target="_blank" rel="noopener noreferrer" aria-label="View credential for {{ certificate.title }}, opens in a new tab" data-cursor="VIEW ↗">{% endif %}
-            <img src="{{ image_url(certificate.image_url) }}" alt="{{ certificate.title }}" loading="lazy" data-image-fallback>
+            <img src="{{ responsive_image_url(certificate.image_url, 960) }}" srcset="{{ responsive_image_url(certificate.image_url, 480) }} 480w, {{ responsive_image_url(certificate.image_url, 800) }} 800w, {{ responsive_image_url(certificate.image_url, 1200) }} 1200w" sizes="(max-width: 700px) calc(100vw - 2rem), (max-width: 960px) calc(100vw - 4rem), 50vw" alt="{{ certificate.title }}" loading="lazy" width="1200" height="800" data-image-fallback>
             <div class="certificate-image-fallback image-placeholder" data-image-placeholder aria-hidden="true"><span>{{ certificate.title[0] }}</span><small>{{ certificate.issuer }}</small></div>
             {% if certificate.safe_credential_url %}</a>{% endif %}
           {% else %}<div class="certificate-image-fallback"><span>{{ certificate.title[0] }}</span><small>{{ certificate.issuer }}</small></div>{% endif %}
@@ -174,11 +173,10 @@
     </div>
   </div>
 </section>
-{% endif %}
 
 <section class="home-contact section-pad" id="contact" data-cursor-theme="theme">
   <div class="container home-contact-grid">
-    <p class="section-number">{{ '06' if certificates else '05' }} / CONTACT</p>
+    <p class="section-number">06 / CONTACT</p>
     <div>
       <h2><span class="line-mask"><span>LET’S BUILD</span></span><span
           class="line-mask"><span>SOMETHING</span></span><span
