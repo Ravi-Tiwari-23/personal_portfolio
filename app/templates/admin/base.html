@@ -15,6 +15,7 @@
       <nav aria-label="Admin navigation">
         <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}"><span>⌂</span> Overview</a>
         <a href="{{ url_for('admin.projects') }}" class="{% if request.endpoint and request.endpoint.startswith('admin.project') %}active{% endif %}"><span>◇</span> Projects</a>
+        <a href="{{ url_for('admin.certificates') }}" class="{% if request.endpoint and request.endpoint.startswith('admin.certificate') %}active{% endif %}"><span>▣</span> Certificates</a>
         <a href="{{ url_for('admin.skills') }}" class="{% if request.endpoint and request.endpoint.startswith('admin.skill') %}active{% endif %}"><span>≡</span> Skills</a>
         <a href="{{ url_for('admin.messages') }}" class="{% if request.endpoint and request.endpoint.startswith('admin.message') %}active{% endif %}"><span>□</span> Messages</a>
         <a href="{{ url_for('admin.resume') }}" class="{% if request.endpoint == 'admin.resume' %}active{% endif %}"><span>↓</span> Résumé</a>

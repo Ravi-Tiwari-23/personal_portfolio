@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from werkzeug.utils import safe_join
 
 from app.extensions import db, limiter
-from app.models import ContactMessage, Experience, Project, SiteSetting, Technology, Skill
+from app.models import Certificate, ContactMessage, Experience, Project, SiteSetting, Technology, Skill
 
 from . import bp
 from .forms import ContactForm
@@ -16,7 +16,8 @@ def index():
     projects = Project.query.filter_by(published=True, featured=True).order_by(Project.display_order, Project.created_at.desc()).limit(5).all()
     experiences = Experience.query.order_by(Experience.display_order, Experience.id).all()
     skills = Skill.query.filter_by(is_active=True).order_by(Skill.display_order, Skill.id).all()
-    return render_template("index.html", projects=projects, experiences=experiences, skills=skills)
+    certificates = Certificate.query.filter_by(is_active=True).order_by(Certificate.display_order, Certificate.issued_date.desc(), Certificate.id).all()
+    return render_template("index.html", projects=projects, experiences=experiences, skills=skills, certificates=certificates)
 
 
 @bp.get("/about")

@@ -385,8 +385,12 @@ html[data-theme="light"] .hero-orb-fallback::after { border-color: rgba(255,255,
 .feature-band li span { font: .7rem "DM Mono", monospace; }
 .feature-band h3 { margin: 0; font-size: clamp(1.8rem, 4vw, 4rem); font-weight: 500; letter-spacing: -.045em; }
 .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.gallery img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
-.gallery img:nth-child(3n) { grid-column: 1/-1; aspect-ratio: 16/8; }
+.gallery-image-frame { position: relative; overflow: hidden; aspect-ratio: 4/3; }
+.gallery-image-frame img { width: 100%; height: 100%; object-fit: cover; }
+.gallery-image-frame:nth-child(3n) { grid-column: 1/-1; aspect-ratio: 16/8; }
+.image-placeholder { display: none; }
+.image-load-failed > [data-image-fallback], .image-load-failed > a > [data-image-fallback] { display: none !important; }
+.image-load-failed > .image-placeholder, .image-load-failed > a > .image-placeholder { display: grid; }
 .case-results { padding-block: var(--space-xl); }
 .case-results h2 { max-width: 68rem; margin: 5rem 0; font-size: clamp(2.4rem, 4vw, 4.5rem); line-height: 1.05; letter-spacing: -.04em; font-weight: 500; }
 .case-links { display: flex; gap: 1rem; }
@@ -550,7 +554,7 @@ body, .hero, .home-contact, .about-details, .site-header, .page-hero-foot, .fiel
   .case-section.two-up { grid-template-columns: 1fr; }
   .feature-band li { grid-template-columns: 2.5rem 1fr; }
   .gallery { grid-template-columns: 1fr; }
-  .gallery img:nth-child(3n) { grid-column: auto; aspect-ratio: 4/3; }
+  .gallery-image-frame:nth-child(3n) { grid-column: auto; aspect-ratio: 4/3; }
   .case-links { flex-direction: column; }
   .case-nav { grid-template-columns: 1fr; }
   .case-nav a { min-height: 11rem; border-right: 0; border-bottom: 1px solid rgba(0,0,0,.25); }

@@ -5,6 +5,11 @@
     if (!window.confirm(form.dataset.confirm)) event.preventDefault();
   }));
   document.querySelectorAll('.admin-flash button').forEach((button) => button.addEventListener('click', () => button.parentElement.remove()));
+  document.querySelectorAll('[data-image-fallback]').forEach((image) => {
+    const showFallback = () => image.closest('.image-frame')?.classList.add('image-load-failed');
+    image.addEventListener('error', showFallback);
+    if (image.complete && image.naturalWidth === 0) showFallback();
+  });
   const resume = document.querySelector('#resume');
   resume?.addEventListener('change', () => {
     const label = document.querySelector('label[for="resume"] strong');

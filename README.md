@@ -46,7 +46,15 @@ flask --app run.py db upgrade
 flask --app run.py seed-skills
 ```
 
-Set `DATABASE_URL` to a PostgreSQL connection string in production, set `SESSION_COOKIE_SECURE=1` and `AUTO_SEED=0`, serve behind HTTPS, run `flask --app run.py db upgrade`, and use a persistent/object-backed media volume. Run with:
+Set `DATABASE_URL` to a PostgreSQL connection string in production, set `SESSION_COOKIE_SECURE=1` and `AUTO_SEED=0`, serve behind HTTPS, and run `flask --app run.py db upgrade`. For persistent project and certificate images on Render, configure all three Cloudinary variables:
+
+```text
+CLOUDINARY_CLOUD_NAME
+CLOUDINARY_API_KEY
+CLOUDINARY_API_SECRET
+```
+
+When those variables are absent, validated images continue to use `instance/uploads` for local development. Run the web service with:
 
 ```text
 gunicorn run:app

@@ -43,6 +43,12 @@
     window.setTimeout(() => document.body.classList.add('loaded'), reduced ? 0 : 350);
   });
 
+  document.querySelectorAll('[data-image-fallback]').forEach((image) => {
+    const showFallback = () => image.closest('.image-frame, .project-visual, .case-visual')?.classList.add('image-load-failed');
+    image.addEventListener('error', showFallback);
+    if (image.complete && image.naturalWidth === 0) showFallback();
+  });
+
   const revealItems = document.querySelectorAll('[data-reveal]');
   if (reduced || !('IntersectionObserver' in window)) {
     revealItems.forEach((item) => item.classList.add('revealed'));
@@ -193,6 +199,18 @@
         ease: 'power4.out',
         scrollTrigger: { trigger: '.home-contact h2', start: 'top 82%', once: true },
       });
+
+      const certificateCards = gsap.utils.toArray('.certificate-card');
+      if (certificateCards.length) {
+        gsap.from(certificateCards, {
+          y: 44,
+          opacity: 0,
+          duration: .8,
+          stagger: .1,
+          ease: 'power3.out',
+          scrollTrigger: { trigger: '.certificate-grid', start: 'top 82%', once: true },
+        });
+      }
       gsap.from('.home-contact p, .contact-actions > *', {
         y: 28,
         opacity: 0,

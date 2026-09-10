@@ -1,0 +1,17 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Edit ' + certificate.title if certificate else 'New certificate' }}{% endblock %}
+{% macro field(input, hint='') %}<div class="admin-field">{{ input.label }}{{ input() }}{% if hint %}<p>{{ hint }}</p>{% endif %}{% for error in input.errors %}<small>{{ error }}</small>{% endfor %}</div>{% endmacro %}
+{% block content %}
+<header class="admin-page-head"><div><a class="admin-back" href="{{ url_for('admin.certificates') }}">← Back to certificates</a><h1>{{ 'Edit certificate' if certificate else 'New certificate' }}</h1><p>Only active certificates appear on the public portfolio.</p></div></header>
+<form class="editor-form" method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+  <div class="editor-main">
+    <section class="panel form-section"><div class="panel-head"><h2>Certificate details</h2></div>{{ field(form.title) }}{{ field(form.issuer) }}{{ field(form.description, 'Optional concise context for the credential.') }}<div class="form-grid">{{ field(form.issued_date) }}{{ field(form.expiry_date, 'Leave blank when the certificate does not expire.') }}</div></section>
+    <section class="panel form-section"><div class="panel-head"><h2>Credential</h2></div>{{ field(form.credential_id) }}{{ field(form.credential_url, 'The public verification or credential page. https:// is added when omitted.') }}</section>
+  </div>
+  <aside class="editor-side">
+    <section class="panel form-section"><div class="panel-head"><h2>Publish</h2></div><label class="switch-row">{{ form.is_active() }}<span><strong>Active</strong><small>Visible on the public site</small></span></label><label class="switch-row">{{ form.is_featured() }}<span><strong>Featured</strong><small>Give this card more emphasis</small></span></label>{{ field(form.display_order) }}{{ form.submit(class_="admin-button primary full") }}</section>
+    <section class="panel form-section"><div class="panel-head"><h2>Certificate image</h2></div>{{ field(form.image, 'JPEG, PNG, or WebP. Max 10 MB. Leave empty while editing to keep the current image.') }}{% if certificate and certificate.image_url %}<div class="certificate-admin-preview image-frame"><img src="{{ image_url(certificate.image_url) }}" alt="Current image for {{ certificate.title }}" data-image-fallback><div class="admin-image-fallback" data-image-placeholder>Preview unavailable</div></div>{% endif %}</section>
+  </aside>
+</form>
+{% endblock %}

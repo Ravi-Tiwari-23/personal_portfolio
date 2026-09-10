@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed, FileField, FileRequired, MultipleFileField
-from wtforms import BooleanField, IntegerField, StringField, SubmitField, TextAreaField, SelectField
+from wtforms import BooleanField, DateField, IntegerField, StringField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, URL, ValidationError, Regexp
 
 from app.project_urls import normalize_project_url, safe_project_url
@@ -52,6 +52,21 @@ class ProjectForm(FlaskForm):
     published = BooleanField("Published")
     display_order = IntegerField("Display order", validators=[NumberRange(min=0, max=9999)], default=0)
     submit = SubmitField("Save project")
+
+
+class CertificateForm(FlaskForm):
+    title = StringField("Certificate title", filters=[trim_value], validators=[DataRequired(), Length(max=180)])
+    issuer = StringField("Issuer / organization", filters=[trim_value], validators=[DataRequired(), Length(max=180)])
+    description = TextAreaField("Short description", filters=[trim_value], validators=[Optional(), Length(max=600)])
+    credential_id = StringField("Credential ID", filters=[trim_value], validators=[Optional(), Length(max=255)])
+    credential_url = StringField("Credential URL", filters=[normalize_project_url], validators=[Optional(), URL(), project_web_link, Length(max=500)])
+    issued_date = DateField("Issue date", validators=[DataRequired()])
+    expiry_date = DateField("Expiry date", validators=[Optional()])
+    image = FileField("Certificate image", validators=[FileAllowed(["jpg", "jpeg", "png", "webp"], "Upload a JPEG, PNG, or WebP image.")])
+    display_order = IntegerField("Display order", validators=[NumberRange(min=0, max=9999)], default=0)
+    is_featured = BooleanField("Featured")
+    is_active = BooleanField("Active", default=True)
+    submit = SubmitField("Save certificate")
 
 
 class SettingsForm(FlaskForm):

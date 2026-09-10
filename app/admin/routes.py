@@ -4,12 +4,11 @@ from pathlib import Path
 
 from flask import abort, current_app, flash, redirect, render_template, request, url_for
 from flask_login import login_required
-from PIL import Image, UnidentifiedImageError
 from sqlalchemy import func
-from werkzeug.utils import secure_filename
 
 from app.extensions import db
 from app.models import ContactMessage, Project, ProjectImage, SiteSetting, Technology
+from app.media_storage import delete_stored_image, store_image
 
 from . import bp
 from .forms import ProjectForm, ResumeForm, SettingsForm
@@ -30,25 +29,6 @@ def unique_slug(value, project_id=None):
     return slug
 
 
-def save_image(storage):
-    ext = Path(secure_filename(storage.filename)).suffix.lower()
-    filename = f"{uuid.uuid4().hex}{ext}"
-    target = Path(current_app.config["UPLOAD_FOLDER"]) / filename
-    storage.save(target)
-    try:
-        with Image.open(target) as image:
-            image.verify()
-        with Image.open(target) as image:
-            if image.format not in {"JPEG", "PNG", "WEBP"}:
-                raise ValueError("Unsupported image format")
-            image.thumbnail((2400, 2400))
-            image.save(target, optimize=True)
-    except (UnidentifiedImageError, OSError, ValueError):
-        target.unlink(missing_ok=True)
-        raise ValueError("The uploaded file is not a valid JPEG, PNG, or WebP image.")
-    return filename
-
-
 def sync_technologies(project, csv_value):
     project.technologies.clear()
     for raw in dict.fromkeys(name.strip() for name in (csv_value or "").split(",") if name.strip()):
@@ -67,10 +47,10 @@ def apply_project_form(project, form):
     project.published = form.published.data
     sync_technologies(project, form.technologies.data)
     if form.thumbnail.data and form.thumbnail.data.filename:
-        project.thumbnail = save_image(form.thumbnail.data)
+        project.thumbnail = store_image(form.thumbnail.data, "portfolio/projects").location
     for index, storage in enumerate(form.gallery.data or []):
         if storage and storage.filename:
-            project.images.append(ProjectImage(image_path=save_image(storage), alt_text=f"{project.title} project view", display_order=len(project.images) + index))
+            project.images.append(ProjectImage(image_path=store_image(storage, "portfolio/projects").location, alt_text=f"{project.title} project view", display_order=len(project.images) + index))
 
 
 @bp.get("")
@@ -232,7 +212,7 @@ def resume():
 def image_delete(image_id):
     image = db.get_or_404(ProjectImage, image_id)
     project_id = image.project_id
-    (Path(current_app.config["UPLOAD_FOLDER"]) / image.image_path).unlink(missing_ok=True)
+    delete_stored_image(image.image_path)
     db.session.delete(image)
     db.session.commit()
     flash("Gallery image removed.", "success")

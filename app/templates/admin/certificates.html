@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% block title %}Certificates{% endblock %}
+{% block content %}
+<header class="admin-page-head"><div><p class="admin-kicker">CONTENT</p><h1>Certificates</h1><p>Manage credentials, visibility, and public display order.</p></div><a class="admin-button primary" href="{{ url_for('admin.certificate_edit') }}">+ Add certificate</a></header>
+{% if certificates %}
+<form id="certificate-order-form" method="post" action="{{ url_for('admin.certificate_reorder') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="skill-admin-order"><p>Lower order numbers appear first. Certificates with the same number are sorted by newest issue date.</p><button type="submit" class="admin-button primary">Save order</button></div></form>
+<section class="panel table-panel"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Certificate</th><th>Issued</th><th>Status</th><th>Featured</th><th>Order</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>
+{% for certificate in certificates %}<tr>
+  <td><a href="{{ url_for('admin.certificate_edit', certificate_id=certificate.id) }}"><strong>{{ certificate.title }}</strong><small>{{ certificate.issuer }}</small></a></td>
+  <td>{{ certificate.issued_date.strftime('%b %Y') }}</td>
+  <td><span class="status {{ 'published' if certificate.is_active else 'draft' }}">{{ 'Active' if certificate.is_active else 'Hidden' }}</span></td>
+  <td>{{ 'Yes' if certificate.is_featured else '—' }}</td>
+  <td><label class="sr-only" for="order-{{ certificate.id }}">Order for {{ certificate.title }}</label><input class="skill-order-input" id="order-{{ certificate.id }}" name="order_{{ certificate.id }}" form="certificate-order-form" type="number" min="0" max="9999" value="{{ certificate.display_order }}" required></td>
+  <td><div class="row-actions"><a href="{{ url_for('admin.certificate_edit', certificate_id=certificate.id) }}">Edit</a><form method="post" action="{{ url_for('admin.certificate_toggle', certificate_id=certificate.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">{{ 'Hide' if certificate.is_active else 'Show' }}</button></form><form method="post" action="{{ url_for('admin.certificate_feature', certificate_id=certificate.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">{{ 'Unfeature' if certificate.is_featured else 'Feature' }}</button></form><form method="post" action="{{ url_for('admin.certificate_delete', certificate_id=certificate.id) }}" data-confirm="Delete {{ certificate.title }}? This cannot be undone."><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="danger" type="submit">Delete</button></form></div></td>
+</tr>{% endfor %}
+</tbody></table></div></section>
+{% else %}<section class="panel panel-empty roomy"><span>▣</span><h2>No certificates yet.</h2><p>Add a credential when you are ready to publish it.</p><a class="admin-button primary" href="{{ url_for('admin.certificate_edit') }}">+ Add certificate</a></section>{% endif %}
+{% endblock %}

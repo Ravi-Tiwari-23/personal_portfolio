@@ -139,6 +139,32 @@ class ProjectImage(db.Model):
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
 
+class Certificate(db.Model):
+    __tablename__ = "certificates"
+    __table_args__ = (
+        db.Index("ix_certificates_public_order", "is_active", "display_order", "issued_date"),
+    )
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(180), nullable=False)
+    issuer = db.Column(db.String(180), nullable=False)
+    description = db.Column(db.String(600), nullable=False, default="")
+    credential_id = db.Column(db.String(255))
+    credential_url = db.Column(db.String(500))
+    issued_date = db.Column(db.Date, nullable=False)
+    expiry_date = db.Column(db.Date)
+    image_url = db.Column(db.String(500))
+    image_public_id = db.Column(db.String(255))
+    display_order = db.Column(db.Integer, nullable=False, default=0)
+    is_featured = db.Column(db.Boolean, nullable=False, default=False)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=utcnow, onupdate=utcnow)
+
+    @property
+    def safe_credential_url(self):
+        return safe_project_url(self.credential_url)
+
+
 class ContactMessage(db.Model):
     __tablename__ = "contact_messages"
     __table_args__ = (db.Index("ix_contact_messages_read_created", "is_read", "created_at"),)

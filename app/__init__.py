@@ -9,7 +9,8 @@ from werkzeug.security import generate_password_hash
 from config import Config
 
 from .extensions import csrf, db, limiter, login_manager, migrate
-from .models import Experience, Project, SiteSetting, Technology, User
+from .media_storage import image_url
+from .models import Certificate, Experience, Project, SiteSetting, Technology, User
 
 
 DEFAULT_SETTINGS = {
@@ -72,7 +73,11 @@ def register_context(app):
     @app.context_processor
     def inject_site():
         settings = {row.key: row.value for row in SiteSetting.query.all()}
-        return {"site": {**DEFAULT_SETTINGS, **settings}}
+        return {
+            "site": {**DEFAULT_SETTINGS, **settings},
+            "has_certificates": Certificate.query.filter_by(is_active=True).first() is not None,
+            "image_url": image_url,
+        }
 
 
 def register_security_headers(app):
@@ -84,7 +89,7 @@ def register_security_headers(app):
         response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         response.headers.setdefault(
             "Content-Security-Policy",
-            "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'",
+            "default-src 'self'; img-src 'self' data: https://res.cloudinary.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'",
         )
         return response
 

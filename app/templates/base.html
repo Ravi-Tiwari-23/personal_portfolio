@@ -41,6 +41,7 @@
         <a href="{{ url_for('main.about') }}">About</a>
         <a href="{{ url_for('main.index') }}#skills">Skills</a>
         <a href="{{ url_for('projects.index') }}">Projects</a>
+        {% if has_certificates %}<a href="{{ url_for('main.index') }}#certificates">Certificates</a>{% endif %}
         <a href="{{ url_for('main.contact') }}">Contact</a>
         <a class="nav-resume" href="{{ url_for('main.resume_download') }}" data-cursor="DOWNLOAD ↓">Résumé <span aria-hidden="true">↓</span></a>
       </nav>
@@ -59,8 +60,9 @@
       <a href="{{ url_for('main.about') }}"><small>01</small> About</a>
       <a href="{{ url_for('main.index') }}#skills"><small>02</small> Skills</a>
       <a href="{{ url_for('projects.index') }}"><small>03</small> Projects</a>
-      <a href="{{ url_for('main.contact') }}"><small>04</small> Contact</a>
-      <a href="{{ url_for('main.resume_download') }}" data-cursor="DOWNLOAD ↓"><small>05</small> Résumé</a>
+      {% if has_certificates %}<a href="{{ url_for('main.index') }}#certificates"><small>04</small> Certificates</a>{% endif %}
+      <a href="{{ url_for('main.contact') }}"><small>{{ '05' if has_certificates else '04' }}</small> Contact</a>
+      <a href="{{ url_for('main.resume_download') }}" data-cursor="DOWNLOAD ↓"><small>{{ '06' if has_certificates else '05' }}</small> Résumé</a>
     </nav>
     <p>{{ site.email }} · {{ site.location }}</p>
   </div>
@@ -84,6 +86,7 @@
         <a href="{{ url_for('main.about') }}">About</a>
         <a href="{{ url_for('main.index') }}#skills">Skills</a>
         <a href="{{ url_for('projects.index') }}">Projects</a>
+        {% if has_certificates %}<a href="{{ url_for('main.index') }}#certificates">Certificates</a>{% endif %}
         <a href="{{ url_for('main.contact') }}">Contact</a>
       </nav>
       <nav class="footer-links footer-connect" aria-label="Connect with Ravi Kumar Tiwari">

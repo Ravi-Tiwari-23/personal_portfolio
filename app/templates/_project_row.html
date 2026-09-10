@@ -15,11 +15,8 @@
     </div>
     <a class="project-visual visual-{{ project.id % 3 }}" href="{{ project.destination_url or url_for('projects.detail', slug=project.slug) }}" {% if project.destination_url %}target="_blank" rel="noopener noreferrer"{% endif %} aria-label="Explore {{ project.title }}{% if project.destination_url %}, opens in a new tab{% endif %}" data-cursor="OPEN ↗">
       {% if project.thumbnail %}
-        {% if project.thumbnail.startswith('static:') %}
-          <img src="{{ url_for('static', filename=project.thumbnail[7:]) }}" alt="Abstract system artwork for {{ project.title }}" loading="lazy" width="1200" height="800">
-        {% else %}
-          <img src="{{ url_for('main.media', filename=project.thumbnail) }}" alt="{{ project.title }} project thumbnail" loading="lazy" width="1200" height="800">
-        {% endif %}
+        <img src="{{ image_url(project.thumbnail) }}" alt="{{ project.title }} project thumbnail" loading="lazy" width="1200" height="800" data-image-fallback>
+        <div class="visual-fallback image-placeholder" data-image-placeholder aria-hidden="true"><b>{{ project.title[0] }}</b><span>{{ project.category }}</span><i></i><i></i></div>
       {% else %}
         <div class="visual-fallback" aria-hidden="true"><b>{{ project.title[0] }}</b><span>{{ project.category }}</span><i></i><i></i></div>
       {% endif %}
